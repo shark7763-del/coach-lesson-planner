@@ -264,11 +264,19 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
       <div class="step-title"><span class="step-num">4</span>選擇課程目標</div>
       <p class="step-hint">可多選</p>
       <div class="opts" id="optGoals"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input class="f" id="newGoalInput" placeholder="自訂目標，例：衝刺跑、Tabata、肌力訓練…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addGoal();}">
+        <button class="btn sec sm" type="button" onclick="addGoal()">＋ 新增</button>
+      </div>
     </div>
     <div class="card">
       <div class="step-title"><span class="step-num">5</span>勾選今日器材</div>
       <p class="step-hint">可多選</p>
       <div class="opts" id="optEquip"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input class="f" id="newEquipInput" placeholder="自訂器材，例：戰繩、藥球…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addEquip();}">
+        <button class="btn sec sm" type="button" onclick="addEquip()">＋ 新增</button>
+      </div>
     </div>
     <div class="card">
       <div class="step-title"><span class="step-num">6</span>課程強度</div>
@@ -409,7 +417,7 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
    ============================================================ */
 const LS = {
   mat:'clp_materials', vid:'clp_videos', hist:'clp_history', cur:'clp_current', seed:'clp_seeded_v1', ytkey:'clp_yt_key',
-  std:'clp_std', tpl:'clp_templates', lang:'clp_lang'
+  std:'clp_std', tpl:'clp_templates', lang:'clp_lang', equip:'clp_equip', goals:'clp_goals', syncUrl:'clp_sync_url'
 };
 const $ = id => document.getElementById(id);
 const read = (k,d)=>{ try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d} };
@@ -420,8 +428,88 @@ const uid = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const CLASSES = ['幼幼班','幼兒班','基礎班','品勢班','選手班','黑帶班','健身班','暑期班'];
 const AGES = ['3-4歲','5-6歲','國小低年級','國小中年級','國小高年級','國中','成人'];
 const SIZES = ['1-5人','6-10人','11-15人','16人以上'];
-const GOALS = ['專注力','平衡感','協調性','反應力','體能','爆發力','核心穩定','基本動作','前踢','下壓','側踢','品勢','對打步伐','禮貌紀律','團隊合作','晉級考試準備'];
-const EQUIP = ['氣墊','敏捷圈','角錐','欄架','欄杆','軟墊','滾筒','反應燈','踢靶','跳繩機'];
+const GOALS_BASE = ['專注力','平衡感','協調性','反應力','體能','爆發力','核心穩定','基本動作','前踢','下壓','側踢','品勢','對打步伐','禮貌紀律','團隊合作','晉級考試準備'];
+let GOALS = GOALS_BASE.concat(read(LS.goals, []));   // 內建 + 教練自訂
+function refreshGoals(){ GOALS = GOALS_BASE.concat(read(LS.goals, [])); }
+/* 課程目標：自訂可新增/刪除版 */
+function renderGoals(){
+  const c=$('optGoals'); if(!c) return; c.innerHTML='';
+  const custom=read(LS.goals,[]);
+  GOALS.forEach(v=>{
+    const d=document.createElement('div'); d.className='opt'; d.textContent=v;
+    if(sel.goals.includes(v)){ d.classList.add('sel'); }
+    d.onclick=()=>{
+      const i=sel.goals.indexOf(v);
+      if(i>=0){ sel.goals.splice(i,1); d.classList.remove('sel'); }
+      else{ sel.goals.push(v); d.classList.add('sel'); }
+    };
+    if(custom.includes(v)){
+      const x=document.createElement('span'); x.textContent='✕'; x.title='刪除自訂目標';
+      x.style.cssText='margin-left:6px;color:#d74444;font-weight:800;cursor:pointer';
+      x.onclick=(e)=>{
+        e.stopPropagation();
+        if(!confirm('刪除自訂目標「'+v+'」？')) return;
+        write(LS.goals, read(LS.goals,[]).filter(z=>z!==v));
+        const si=sel.goals.indexOf(v); if(si>=0) sel.goals.splice(si,1);
+        refreshGoals(); renderGoals();
+      };
+      d.appendChild(x);
+    }
+    c.appendChild(d);
+  });
+}
+function addGoal(){
+  const inp=$('newGoalInput'); if(!inp) return;
+  const name=(inp.value||'').trim();
+  if(!name) return;
+  if(GOALS.includes(name)){ alert('「'+name+'」已經在清單裡了。'); inp.value=''; return; }
+  const cur=read(LS.goals,[]); cur.push(name); write(LS.goals,cur);
+  refreshGoals();
+  if(!sel.goals.includes(name)) sel.goals.push(name);
+  inp.value='';
+  renderGoals();
+}
+const EQUIP_BASE = ['氣墊','敏捷圈','角錐','欄架','欄杆','軟墊','滾筒','反應燈','踢靶','跳繩機'];
+let EQUIP = EQUIP_BASE.concat(read(LS.equip, []));   // 內建 + 教練自訂（localStorage）
+function refreshEquip(){ EQUIP = EQUIP_BASE.concat(read(LS.equip, [])); }
+/* 今日器材：自訂可新增/刪除版（取代固定 multi） */
+function renderEquip(){
+  const c=$('optEquip'); if(!c) return; c.innerHTML='';
+  const custom=read(LS.equip,[]);
+  EQUIP.forEach(v=>{
+    const d=document.createElement('div'); d.className='opt altmark'; d.textContent=v;
+    if(sel.equip.includes(v)){ d.classList.add('sel','alt'); }
+    d.onclick=()=>{
+      const i=sel.equip.indexOf(v);
+      if(i>=0){ sel.equip.splice(i,1); d.classList.remove('sel','alt'); }
+      else{ sel.equip.push(v); d.classList.add('sel','alt'); }
+    };
+    if(custom.includes(v)){
+      const x=document.createElement('span'); x.textContent='✕'; x.title='刪除自訂器材';
+      x.style.cssText='margin-left:6px;color:#d74444;font-weight:800;cursor:pointer';
+      x.onclick=(e)=>{
+        e.stopPropagation();
+        if(!confirm('刪除自訂器材「'+v+'」？')) return;
+        write(LS.equip, read(LS.equip,[]).filter(z=>z!==v));
+        const si=sel.equip.indexOf(v); if(si>=0) sel.equip.splice(si,1);
+        refreshEquip(); renderEquip();
+      };
+      d.appendChild(x);
+    }
+    c.appendChild(d);
+  });
+}
+function addEquip(){
+  const inp=$('newEquipInput'); if(!inp) return;
+  const name=(inp.value||'').trim();
+  if(!name) return;
+  if(EQUIP.includes(name)){ alert('「'+name+'」已經在清單裡了。'); inp.value=''; return; }
+  const cur=read(LS.equip,[]); cur.push(name); write(LS.equip,cur);
+  refreshEquip();
+  if(!sel.equip.includes(name)) sel.equip.push(name);   // 新增後順手勾選
+  inp.value='';
+  renderEquip();
+}
 const INTENSITY = ['趣味型','一般型','高活動量','考試準備'];
 const STAGES = ['暖身','體能','敏捷','基本技術','闖關','收操'];
 
@@ -670,8 +758,8 @@ function buildOpts(){
   single('optClass',CLASSES,'cls');
   single('optAge',AGES,'age');
   single('optSize',SIZES,'size');
-  multi('optGoals',GOALS,'goals');
-  multi('optEquip',EQUIP,'equip',true);
+  renderGoals();
+  renderEquip();
   single('optIntensity',INTENSITY,'intensity');
   // 預設強度
   setTimeout(()=>{ const ic=$('optIntensity'); if(ic.children[1])ic.children[1].classList.add('sel'); sel.intensity='一般型'; },0);
@@ -861,8 +949,9 @@ function saveStdTemplate(){
   const name=prompt('模板名稱：','我的標準課表');
   if(!name)return;
   const tpls=read(LS.tpl,[]);
-  tpls.unshift({id:uid(),name,segments:JSON.parse(JSON.stringify(STD.segments))});
-  write(LS.tpl,tpls);toast('已儲存模板：'+name);
+  const obj={id:uid(),name,segments:JSON.parse(JSON.stringify(STD.segments))};
+  tpls.unshift(obj);
+  write(LS.tpl,tpls);cloudUpsert('templates',obj);toast(syncOn()?'已儲存並同步雲端：'+name:'已儲存模板：'+name);
 }
 function openTemplates(){
   const tpls=read(LS.tpl,[]);
@@ -885,7 +974,7 @@ function loadTemplate(id){
 }
 function delTemplate(id){
   if(!confirm('刪除此模板？'))return;
-  write(LS.tpl,read(LS.tpl,[]).filter(x=>x.id!==id));openTemplates();
+  write(LS.tpl,read(LS.tpl,[]).filter(x=>x.id!==id));cloudDelete('templates',id);openTemplates();
 }
 
 /* 家長回饋（標準課表版） */
@@ -1312,10 +1401,11 @@ function saveLiveVideo(i){
   const thumb=(s.thumbnails&&(s.thumbnails.medium||s.thumbnails.default)||{}).url||`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
   const vids=read(LS.vid,[]);
   if(vids.some(v=>v.url.includes(vid))){toast('這支影片已在影片庫');return;}
-  vids.unshift({id:uid(),title:s.title,url:`https://www.youtube.com/watch?v=${vid}`,thumb,
+  const obj={id:uid(),title:s.title,url:`https://www.youtube.com/watch?v=${vid}`,thumb,
     ages:c.age?[c.age]:[],classes:c.cls?[c.cls]:[],equipment:c.equip||[],goals:c.goals||[],
-    stage:'基本技術',level:'中等',note:'AI 線上搜尋收藏'});
-  write(LS.vid,vids);
+    stage:'基本技術',level:'中等',note:'AI 線上搜尋收藏'};
+  vids.unshift(obj);
+  write(LS.vid,vids);cloudUpsert('videos',obj);
   toast('已加進影片庫');
 }
 
@@ -1691,7 +1781,7 @@ function viewMaterial(id){
 }
 function delMaterial(id){
   if(!confirm('確定刪除此教案素材？'))return;
-  write(LS.mat, read(LS.mat,[]).filter(m=>m.id!==id));renderLib();toast('已刪除');
+  write(LS.mat, read(LS.mat,[]).filter(m=>m.id!==id));cloudDelete('materials',id);renderLib();toast('已刪除');
 }
 function openMaterialModal(id){
   const m=id?read(LS.mat,[]).find(x=>x.id===id):null;
@@ -1740,7 +1830,7 @@ function saveMaterial(){
   let mats=read(LS.mat,[]);
   const i=mats.findIndex(m=>m.id===obj.id);
   if(i>=0)mats[i]=obj; else mats.unshift(obj);
-  write(LS.mat,mats);closeModal();renderLib();toast('已儲存');
+  write(LS.mat,mats);cloudUpsert('materials',obj);closeModal();renderLib();toast(syncOn()?'已儲存並同步雲端':'已儲存');
 }
 
 /* ============================================================
@@ -1805,7 +1895,7 @@ function renderVideos(){
       </div>
     </div>`).join('');
 }
-function delVideo(id){if(!confirm('刪除此影片？'))return;write(LS.vid,read(LS.vid,[]).filter(v=>v.id!==id));renderVideos();toast('已刪除');}
+function delVideo(id){if(!confirm('刪除此影片？'))return;write(LS.vid,read(LS.vid,[]).filter(v=>v.id!==id));cloudDelete('videos',id);renderVideos();toast('已刪除');}
 function openVideoModal(id){
   const v=id?read(LS.vid,[]).find(x=>x.id===id):null;
   const chk=(arr,sel)=>arr.map(x=>`<label class="opt ${(sel||[]).includes(x)?'sel':''}" style="font-size:12px;padding:6px 10px" onclick="this.classList.toggle('sel')">${x}</label>`).join('');
@@ -1839,7 +1929,7 @@ function saveVideo(){
     goals:getChecked('v_goals'),stage:$('v_stage').value,level:$('v_level').value,note:$('v_note').value.trim()};
   let vids=read(LS.vid,[]);const i=vids.findIndex(v=>v.id===obj.id);
   if(i>=0)vids[i]=obj;else vids.unshift(obj);
-  write(LS.vid,vids);closeModal();renderVideos();toast('已儲存');
+  write(LS.vid,vids);cloudUpsert('videos',obj);closeModal();renderVideos();toast(syncOn()?'已儲存並同步雲端':'已儲存');
 }
 
 /* ============================================================
@@ -1874,10 +1964,33 @@ function openSettings(){
         5. 把金鑰貼到上面儲存即可。每天免費可搜尋約 100 次，足夠日常備課。
       </div>
     </div>
+    <div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="font-weight:800;font-size:14px;margin-bottom:4px">☁️ 全館雲端同步</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:8px">所有教練共用同一套<b>素材庫／影片庫／常用模板</b>。一人新增，大家下載後都看得到。</div>
+      <input class="f" id="syncUrlInput" value="${escAttr(read(LS.syncUrl,''))}" placeholder="貼上 GAS 網頁應用程式 /exec 網址">
+      <div style="height:8px"></div>
+      <div class="btn-row">
+        <button class="btn sm" onclick="saveSyncUrl()">💾 儲存並下載</button>
+        <button class="btn sec sm" onclick="cloudPull()">⬇️ 立即下載</button>
+      </div>
+      <div style="height:6px"></div>
+      <button class="btn sec sm" onclick="cloudPushAll()">⬆️ 上傳本機到雲端（初始化用）</button>
+      <div style="height:6px"></div>
+      <a href="#" onclick="toggleSyncHelp(event)" style="font-size:12px;color:var(--accent);font-weight:700">📖 如何建立全館雲端後端？</a>
+      <div id="syncHelp" class="hidden" style="font-size:11px;color:#475569;line-height:1.8;margin-top:8px;background:var(--soft);border-radius:8px;padding:10px">
+        1. 到 <b>sheets.new</b> 建立一個 Google 試算表。<br>
+        2. 上方「擴充功能 → Apps Script」，貼上我給你的 <b>Code.gs</b> 內容、儲存。<br>
+        3. 右上「部署 → 新增部署作業 → 網頁應用程式」；執行身分＝你、存取權限＝<b>任何人</b>。<br>
+        4. 複製 <b>/exec</b> 網址，貼到上面欄位 → 儲存並下載。<br>
+        5. 在資料最齊全的那台按一次「⬆️ 上傳本機到雲端」做初始化。<br>
+        6. 其他教練貼<b>同一個網址</b>、按「⬇️ 立即下載」即可全館共用。
+      </div>
+    </div>
     <div class="set-row" onclick="clearAllData()" style="border-color:#fecdd3; color:var(--brand)"><span class="si">🗑️</span><div>清空全部資料<small>連同你新增的都會刪除，請謹慎</small></div></div>
-    <div style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px">道館教練備課助手 · 資料儲存在本機瀏覽器</div>
+    <div style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px">道館教練備課助手 · ${read(LS.syncUrl,'')?'☁️ 已連線全館雲端':'資料儲存在本機瀏覽器'}</div>
   `);
 }
+function toggleSyncHelp(e){e.preventDefault();$('syncHelp').classList.toggle('hidden');}
 function exportData(){
   const data={app:'coach-lesson-planner',version:1,exportedAt:new Date().toISOString(),
     materials:read(LS.mat,[]),videos:read(LS.vid,[]),history:read(LS.hist,[])};
@@ -1906,6 +2019,54 @@ function importData(input){
   };
   r.readAsText(file);
 }
+
+/* ============================================================
+   全館雲端同步（GAS + Google Sheets）
+   共用集合：materials / videos / templates
+   ============================================================ */
+function syncOn(){return !!read(LS.syncUrl,'');}
+function saveSyncUrl(){
+  const u=$('syncUrlInput').value.trim();
+  write(LS.syncUrl,u);
+  toast(u?'已儲存，開始下載…':'已關閉雲端同步');
+  if(u)cloudPull();
+}
+function cloudPost(body){
+  const url=read(LS.syncUrl,''); if(!url)return Promise.resolve(null);
+  // 用預設 text/plain 內容型別，避免 CORS 預檢；GAS 以 e.postData.contents 解析
+  return fetch(url,{method:'POST',body:JSON.stringify(body)}).then(r=>r.json()).catch(()=>null);
+}
+function cloudUpsert(coll,item){ if(syncOn())cloudPost({action:'upsert',coll,item}); }
+function cloudDelete(coll,id){ if(syncOn())cloudPost({action:'delete',coll,id}); }
+async function cloudPull(silent){
+  const url=read(LS.syncUrl,'');
+  if(!url){ if(!silent)toast('尚未設定同步網址'); return; }
+  if(!silent)toast('☁️ 下載中…');
+  try{
+    const sep=url.includes('?')?'&':'?';
+    const r=await fetch(url+sep+'action=pull&t='+Date.now());
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    if(Array.isArray(d.materials)&&d.materials.length)write(LS.mat,d.materials);
+    if(Array.isArray(d.videos)&&d.videos.length)write(LS.vid,d.videos);
+    if(Array.isArray(d.templates)&&d.templates.length)write(LS.tpl,d.templates);
+    if(typeof renderLib==='function')renderLib();
+    if(typeof renderVideos==='function')renderVideos();
+    if(!silent)toast('☁️ 已同步全館資料');
+  }catch(e){ if(!silent)toast('同步失敗：'+e.message); }
+}
+async function cloudPushAll(){
+  if(!syncOn()){toast('請先儲存同步網址');return;}
+  if(!confirm('將「這台」目前的素材、影片、常用模板覆蓋上傳到雲端，作為全館共用版本？\n（其他教練下載後會看到這份）'))return;
+  toast('☁️ 上傳中…');
+  try{
+    await cloudPost({action:'bulk',coll:'materials',item:read(LS.mat,[])});
+    await cloudPost({action:'bulk',coll:'videos',item:read(LS.vid,[])});
+    await cloudPost({action:'bulk',coll:'templates',item:read(LS.tpl,[])});
+    toast('☁️ 已上傳，其他教練按「立即下載」即可共用');
+  }catch(e){toast('上傳失敗：'+e.message);}
+}
+
 function restoreSeedExamples(){
   const cur=read(LS.mat,[]); const names=new Set(cur.map(m=>m.name));
   let added=0;
@@ -2025,6 +2186,8 @@ function init(){
     $('parentNoLesson').classList.add('hidden');$('parentReady').classList.remove('hidden');
   }
   go('plan');
+  // 全館雲端同步：啟動時靜默下載最新共用資料
+  if(syncOn())cloudPull(true);
 }
 init();
 </script>
