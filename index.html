@@ -362,7 +362,7 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
    clp_materials / clp_videos / clp_history / clp_current
    ============================================================ */
 const LS = {
-  mat:'clp_materials', vid:'clp_videos', hist:'clp_history', cur:'clp_current', seed:'clp_seeded_v1'
+  mat:'clp_materials', vid:'clp_videos', hist:'clp_history', cur:'clp_current', seed:'clp_seeded_v1', ytkey:'clp_yt_key'
 };
 const $ = id => document.getElementById(id);
 const read = (k,d)=>{ try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d} };
@@ -721,6 +721,60 @@ function ytSearch(q){return 'https://www.youtube.com/results?search_query='+enco
 function fbSearch(q){return 'https://www.facebook.com/watch/search/?q='+encodeURIComponent(q);}
 function googleSearch(q){return 'https://www.google.com/search?q='+encodeURIComponent(q+' 影片');}
 
+/* 有 API 金鑰時，課表自動列出真實 YouTube 影片清單（瀏覽器直呼叫，支援 CORS） */
+let _liveCtx=null;
+async function loadLiveVideos(L){
+  const box=$('ytLive'); if(!box||!L)return;
+  const key=read(LS.ytkey,'');
+  if(!key){
+    box.innerHTML=`<div class="ai-hint"><b>💡 想讓課表自動列出真實影片清單？</b>到右上角 ⚙️ 設定貼上免費 YouTube API 金鑰即可。未設定時，仍可用下方一鍵搜尋。</div>`;
+    return;
+  }
+  const c=L.ctx; _liveCtx=c;
+  const q=['跆拳道',ageWordOf(c),...c.goals.slice(0,3),'教學'].filter(Boolean).join(' ');
+  box.innerHTML=`<div class="step-hint">🔄 線上搜尋「${esc(q)}」中…</div>`;
+  try{
+    const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&relevanceLanguage=zh-Hant&regionCode=TW&safeSearch=strict&q=${encodeURIComponent(q)}&key=${encodeURIComponent(key)}`;
+    const r=await fetch(url); const d=await r.json();
+    if(d.error){
+      box.innerHTML=`<div class="ai-hint" style="background:#fef2f2;color:#b91c1c"><b>⚠️ 無法取得影片</b>${esc(d.error.message||'金鑰或配額有誤')}<br>請到 ⚙️ 檢查金鑰、或確認 YouTube Data API v3 已啟用、配額未用完。</div>`;
+      return;
+    }
+    const items=(d.items||[]).filter(it=>it.id&&it.id.videoId);
+    if(!items.length){box.innerHTML=`<div class="step-hint">查無相關影片，可改用下方一鍵搜尋。</div>`;return;}
+    window._liveVids=items;
+    box.innerHTML=`<div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍AI 線上找到的影片（${items.length}）</div>`+
+      items.map((it,i)=>{
+        const vid=it.id.videoId, s=it.snippet;
+        const thumb=(s.thumbnails&&(s.thumbnails.medium||s.thumbnails.default)||{}).url||`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+        const wurl=`https://www.youtube.com/watch?v=${vid}`;
+        return `<div class="litem">
+          <a href="${wurl}" target="_blank"><div class="vthumb"><img src="${esc(thumb)}" onerror="this.parentNode.parentNode.style.display='none'"><span class="play">▶</span></div></a>
+          <h4>${esc(s.title)}</h4>
+          <p>${esc(s.channelTitle||'')}</p>
+          <div class="acts">
+            <button onclick="saveLiveVideo(${i})">＋ 加進影片庫</button>
+            <a href="${wurl}" target="_blank" style="flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px;font-size:12px;font-weight:700;color:var(--accent);text-align:center;text-decoration:none">▶ 觀看</a>
+          </div>
+        </div>`;
+      }).join('');
+  }catch(e){
+    box.innerHTML=`<div class="ai-hint" style="background:#fef2f2;color:#b91c1c"><b>⚠️ 連線失敗</b>${esc(e.message)}（請檢查網路）</div>`;
+  }
+}
+function saveLiveVideo(i){
+  const it=(window._liveVids||[])[i]; if(!it)return;
+  const s=it.snippet, vid=it.id.videoId, c=_liveCtx||{};
+  const thumb=(s.thumbnails&&(s.thumbnails.medium||s.thumbnails.default)||{}).url||`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+  const vids=read(LS.vid,[]);
+  if(vids.some(v=>v.url.includes(vid))){toast('這支影片已在影片庫');return;}
+  vids.unshift({id:uid(),title:s.title,url:`https://www.youtube.com/watch?v=${vid}`,thumb,
+    ages:c.age?[c.age]:[],classes:c.cls?[c.cls]:[],equipment:c.equip||[],goals:c.goals||[],
+    stage:'基本技術',level:'中等',note:'AI 線上搜尋收藏'});
+  write(LS.vid,vids);
+  toast('已加進影片庫');
+}
+
 let CURRENT=null;
 
 function generateLesson(){
@@ -802,6 +856,7 @@ function renderLesson(){
   const goalKw=['跆拳道',aw,...c.goals.slice(0,3),'教學'].filter(Boolean).join(' ');
   html+=`<div class="sec-h" style="margin-top:18px">🔎 線上找教學影片靈感<span class="line"></span></div>
     <div class="card" style="padding:14px">
+      <div id="ytLive"></div>
       <p class="step-hint" style="margin:0 0 10px">點關鍵字，幫你到線上搜尋類似教學影片參考。找到喜歡的，複製連結到「影片庫」就能自動收藏帶縮圖。</p>
       <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍依今日目標</div>
       <div class="opts" style="margin-bottom:12px">
@@ -829,6 +884,7 @@ function renderLesson(){
   $('planResult').innerHTML=html;
   $('planResult').classList.remove('hidden');
   $('planWizard').classList.add('hidden');
+  loadLiveVideos(L);
 }
 
 function resetWizard(){
@@ -1232,6 +1288,22 @@ function openSettings(){
     <label class="set-row" style="cursor:pointer"><span class="si">📥</span><div>匯入資料（還原）<small>選擇之前匯出的 JSON 檔</small></div>
       <input type="file" accept="application/json,.json" style="display:none" onchange="importData(this)"></label>
     <div class="set-row" onclick="restoreSeedExamples()"><span class="si">🌱</span><div>補齊範例素材<small>把出廠範例教案補回來（不會刪你自己的）</small></div></div>
+    <div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="font-weight:800;font-size:14px;margin-bottom:4px">🎬 YouTube 影片自動列出</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:8px">貼上免費 YouTube API 金鑰，課表就會自動列出真實影片清單。</div>
+      <input class="f" id="ytKeyInput" value="${escAttr(read(LS.ytkey,''))}" placeholder="貼上 YouTube Data API 金鑰">
+      <div style="height:8px"></div>
+      <button class="btn sm" onclick="saveYtKey()">💾 儲存金鑰</button>
+      <div style="height:6px"></div>
+      <a href="#" onclick="toggleYtHelp(event)" style="font-size:12px;color:var(--accent);font-weight:700">📖 如何免費取得金鑰？</a>
+      <div id="ytHelp" class="hidden" style="font-size:11px;color:#475569;line-height:1.8;margin-top:8px;background:var(--soft);border-radius:8px;padding:10px">
+        1. 到 <b>console.cloud.google.com</b> 登入 Google，建立一個專案。<br>
+        2. 左側「API 和服務 → 程式庫」搜尋 <b>YouTube Data API v3</b> → 啟用。<br>
+        3. 「憑證 → 建立憑證 → API 金鑰」，複製產生的金鑰。<br>
+        4. （建議）點該金鑰 → 應用程式限制選「網站」→ 加入 <b>shark7763-del.github.io/*</b>，避免被盜用。<br>
+        5. 把金鑰貼到上面儲存即可。每天免費可搜尋約 100 次，足夠日常備課。
+      </div>
+    </div>
     <div class="set-row" onclick="clearAllData()" style="border-color:#fecdd3; color:var(--brand)"><span class="si">🗑️</span><div>清空全部資料<small>連同你新增的都會刪除，請謹慎</small></div></div>
     <div style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px">道館教練備課助手 · 資料儲存在本機瀏覽器</div>
   `);
@@ -1271,6 +1343,14 @@ function restoreSeedExamples(){
   write(LS.mat,cur);renderLib();
   toast(added?`已補回 ${added} 筆範例素材`:'範例素材已是最新');
 }
+function saveYtKey(){
+  const k=$('ytKeyInput').value.trim();
+  write(LS.ytkey,k);
+  toast(k?'金鑰已儲存，課表將自動列出影片':'已清除金鑰');
+  if(CURRENT)loadLiveVideos(CURRENT);
+}
+function toggleYtHelp(e){e.preventDefault();$('ytHelp').classList.toggle('hidden');}
+
 function clearAllData(){
   if(!confirm('確定清空全部資料？此動作無法復原。'))return;
   if(!confirm('再次確認：連同你新增的素材、影片、歷史都會刪除。'))return;
