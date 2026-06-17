@@ -753,7 +753,8 @@ function renderLesson(){
       if(m.variations)html+=`<div class="row"><span class="k">🔁 難度調整</span>${m.variations}</div>`;
       const pf=parentFriendly(m.goals||[]);
       html+=`<div class="row parent"><span class="k">👪 家長看得懂的說法</span>這段在練「${m.name}」，幫助孩子${pf[0]||'打好基礎'}。</div>`;
-      if(m.video)html+=`<a class="vid-link" href="${m.video}" target="_blank" onclick="event.stopPropagation()">🎬 參考影片</a>`;
+      if(m.thumb)html+=`<a href="${m.video||'#'}" target="_blank" onclick="event.stopPropagation()" style="display:block;max-width:240px;margin-top:6px"><div class="vthumb"><img src="${escAttr(m.thumb)}" onerror="this.parentNode.parentNode.style.display='none'"><span class="play">▶</span></div></a>`;
+      else if(m.video)html+=`<a class="vid-link" href="${m.video}" target="_blank" onclick="event.stopPropagation()">🎬 參考影片</a>`;
     }else{
       html+=`<div class="row" style="color:#94a3b8">此段尚無對應素材，請到「素材庫」新增更多教案。</div>`;
     }
@@ -1017,7 +1018,7 @@ function viewMaterial(id){
     <div class="row assist"><span class="k">🙌 助教任務</span>${m.assistant||'—'}</div>
     <div class="row safe"><span class="k">⚠️ 安全提醒</span>${m.safety||'—'}</div>
     ${f('🔁 變化玩法',m.variations)}
-    ${m.video?`<a class="vid-link" href="${m.video}" target="_blank">🎬 影片連結</a>`:''}
+    ${m.thumb?`<a href="${m.video||'#'}" target="_blank" style="display:block;margin:6px 0"><div class="vthumb"><img src="${escAttr(m.thumb)}" onerror="this.parentNode.parentNode.style.display='none'"><span class="play">▶</span></div></a>`:(m.video?`<a class="vid-link" href="${m.video}" target="_blank">🎬 影片連結</a>`:'')}
     ${f('備註',m.note)}
   `);
 }
@@ -1044,7 +1045,11 @@ function openMaterialModal(id){
     <label class="fl">助教任務</label><textarea class="f" id="m_assistant">${m?esc(m.assistant):''}</textarea>
     <label class="fl">安全提醒</label><textarea class="f" id="m_safety">${m?esc(m.safety):''}</textarea>
     <label class="fl">變化玩法</label><textarea class="f" id="m_variations">${m?esc(m.variations):''}</textarea>
-    <label class="fl">影片連結</label><input class="f" id="m_video" value="${m?escAttr(m.video||''):''}" placeholder="https://">
+    <label class="fl">影片連結</label>
+    <input class="f" id="m_video" value="${m?escAttr(m.video||''):''}" placeholder="貼上 YouTube 連結可自動帶縮圖" onchange="autofillMaterial()" onpaste="setTimeout(autofillMaterial,120)">
+    <button class="btn sec sm" type="button" onclick="autofillMaterial()" style="margin-top:8px">🪄 自動帶入縮圖</button>
+    <input type="hidden" id="m_thumb" value="${m?escAttr(m.thumb||''):''}">
+    <div id="m_thumbPrev" style="margin-top:8px">${m&&m.thumb?`<img src="${escAttr(m.thumb)}" style="width:100%;border-radius:10px;border:1px solid var(--line)">`:''}</div>
     <label class="fl">備註</label><input class="f" id="m_note" value="${m?escAttr(m.note||''):''}">
     <div style="height:14px"></div>
     <button class="btn" onclick="saveMaterial()">💾 儲存素材</button>
@@ -1063,7 +1068,7 @@ function saveMaterial(){
     content:$('m_content').value.trim(), keypoints:$('m_keypoints').value.trim(),
     commands:$('m_commands').value.trim(), assistant:$('m_assistant').value.trim(),
     safety:$('m_safety').value.trim(), variations:$('m_variations').value.trim(),
-    video:$('m_video').value.trim(), note:$('m_note').value.trim()
+    video:$('m_video').value.trim(), thumb:$('m_thumb').value.trim()||ytThumb($('m_video').value.trim()), note:$('m_note').value.trim()
   };
   let mats=read(LS.mat,[]);
   const i=mats.findIndex(m=>m.id===obj.id);
@@ -1082,15 +1087,15 @@ function ytId(url){
 }
 function ytThumb(url){const id=ytId(url);return id?`https://img.youtube.com/vi/${id}/hqdefault.jpg`:'';}
 
-/* 貼連結 → 自動搜尋帶入標題與縮圖（YouTube 直接解析縮圖；標題用 noembed，免金鑰、支援 CORS） */
+/* 貼連結 → 自動搜尋帶入縮圖(／標題)。YouTube 直接解析縮圖；標題用 noembed，免金鑰、支援 CORS。
+   通用版：影片庫與素材庫共用。titleId 傳 null 時只帶縮圖（素材庫用）。 */
 let _autofillBusy=false;
-async function autofillVideo(){
-  const url=($('v_url')?.value||'').trim();
+async function autofillThumb(urlId, thumbId, prevId, titleId){
+  const url=($(urlId)?.value||'').trim();
   if(!url||_autofillBusy)return;
   _autofillBusy=true;
   let thumb=ytThumb(url), title='';
-  // 先放上 YouTube 縮圖預覽
-  if(thumb)showThumbPrev(thumb);
+  if(thumb)showThumbPrev(prevId,thumb);
   try{
     const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),6000);
     const r=await fetch('https://noembed.com/embed?url='+encodeURIComponent(url),{signal:ctrl.signal});
@@ -1099,13 +1104,15 @@ async function autofillVideo(){
     if(d&&d.title&&!d.error)title=d.title;
     if(!thumb&&d&&d.thumbnail_url)thumb=d.thumbnail_url;
   }catch(e){/* 離線或來源不支援，靜默 */}
-  if(thumb){$('v_thumb').value=thumb;showThumbPrev(thumb);}
-  if(title&&!$('v_title').value.trim())$('v_title').value=title;
+  if(thumb){$(thumbId).value=thumb;showThumbPrev(prevId,thumb);}
+  if(titleId&&title&&!$(titleId).value.trim())$(titleId).value=title;
   _autofillBusy=false;
   if(title||thumb)toast('已自動帶入'); else toast('此來源無法自動取得，請手動填寫');
 }
-function showThumbPrev(src){
-  const el=$('v_thumbPrev'); if(!el)return;
+function autofillVideo(){return autofillThumb('v_url','v_thumb','v_thumbPrev','v_title');}
+function autofillMaterial(){return autofillThumb('m_video','m_thumb','m_thumbPrev',null);}
+function showThumbPrev(prevId,src){
+  const el=$(prevId); if(!el)return;
   el.innerHTML=`<img src="${escAttr(src)}" onerror="this.style.display='none'" style="width:100%;border-radius:10px;border:1px solid var(--line)">`;
 }
 
