@@ -400,7 +400,7 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
    ============================================================ */
 const LS = {
   mat:'clp_materials', vid:'clp_videos', hist:'clp_history', cur:'clp_current', seed:'clp_seeded_v1', ytkey:'clp_yt_key',
-  std:'clp_std', tpl:'clp_templates'
+  std:'clp_std', tpl:'clp_templates', lang:'clp_lang'
 };
 const $ = id => document.getElementById(id);
 const read = (k,d)=>{ try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d} };
@@ -992,14 +992,60 @@ function buildLessonObject(ctx){
   };
 }
 
-/* ---------- 線上找影片：關鍵字產生 + 各平台搜尋網址（免金鑰） ---------- */
+/* ---------- 線上找影片：多語言關鍵字 + 各平台搜尋網址（免金鑰） ---------- */
+/* 搜尋語言：zh中文 / ko韓文 / en英文 / ja日文 */
+const LANGS=[['zh','🇹🇼中文'],['ko','🇰🇷韓文'],['en','🇺🇸英文'],['ja','🇯🇵日文']];
+const LANG_REL={zh:'zh-Hant',ko:'ko',en:'en',ja:'ja'};
+let searchLang='zh';
+/* 詞彙翻譯表（以中文為 key）。非中文找不到的詞會略過，避免混語。 */
+const DIC={
+  '跆拳道':{ko:'태권도',en:'taekwondo',ja:'テコンドー'},
+  '教學':{ko:'수업',en:'training drills',ja:'指導'},
+  '幼兒':{ko:'유아',en:'preschool kids',ja:'幼児'},
+  '兒童':{ko:'어린이',en:'kids',ja:'子供'},
+  '青少年':{ko:'청소년',en:'teen',ja:'青少年'},
+  // 階段／技術
+  '暖身遊戲':{ko:'준비운동',en:'warm up games',ja:'ウォーミングアップ'},
+  '體能訓練':{ko:'체력 훈련',en:'fitness drills',ja:'体力トレーニング'},
+  '敏捷訓練':{ko:'민첩성 훈련',en:'agility drills',ja:'アジリティ'},
+  '基本動作':{ko:'기본동작',en:'basics',ja:'基本動作'},
+  '闖關遊戲':{ko:'게임',en:'obstacle games',ja:'ゲーム'},
+  '伸展收操':{ko:'스트레칭',en:'cool down stretching',ja:'ストレッチ'},
+  '訓練':{ko:'훈련',en:'drills',ja:'トレーニング'},
+  '前踢':{ko:'앞차기',en:'front kick',ja:'前蹴り'},
+  '側踢':{ko:'옆차기',en:'side kick',ja:'横蹴り'},
+  '下壓':{ko:'내려차기',en:'axe kick',ja:'かかと落とし'},
+  '品勢':{ko:'품새',en:'poomsae',ja:'プムセ'},
+  '對打步伐':{ko:'겨루기 스텝',en:'sparring footwork',ja:'ステップ'},
+  // 目標
+  '專注力':{ko:'집중력',en:'focus',ja:'集中力'},
+  '平衡感':{ko:'균형',en:'balance',ja:'バランス'},
+  '協調性':{ko:'협응력',en:'coordination',ja:'協調性'},
+  '反應力':{ko:'반응속도',en:'reaction',ja:'反応'},
+  '體能':{ko:'체력',en:'fitness',ja:'体力'},
+  '爆發力':{ko:'순발력',en:'power',ja:'瞬発力'},
+  '核心穩定':{ko:'코어',en:'core',ja:'体幹'},
+  '禮貌紀律':{ko:'예절',en:'discipline',ja:'礼儀'},
+  '團隊合作':{ko:'팀워크',en:'teamwork',ja:'チームワーク'},
+  '晉級考試準備':{ko:'승급심사',en:'belt test',ja:'昇級審査'},
+  // 器材
+  '角錐':{ko:'콘',en:'cones',ja:'コーン'},
+  '踢靶':{ko:'미트',en:'kicking pad',ja:'ミット'},
+  '氣墊':{ko:'에어매트',en:'air mat',ja:'エアマット'},
+  '敏捷圈':{ko:'사다리',en:'agility ladder',ja:'ラダー'},
+  '欄架':{ko:'허들',en:'hurdles',ja:'ハードル'},
+  '反應燈':{ko:'반응 라이트',en:'reaction lights',ja:'反応ライト'}
+};
+function tr(zh,lang){ if(!zh)return ''; if(lang==='zh')return zh; const e=DIC[zh]; return e&&e[lang]?e[lang]:''; }
+function langLabel(code){const f=LANGS.find(l=>l[0]===code);return f?f[1]:'中文';}
 function ageWordOf(ctx){
   if(['幼幼班','幼兒班'].includes(ctx.cls))return '幼兒';
   if(/國小/.test(ctx.age))return '兒童';
   if(ctx.age==='國中')return '青少年';
   return '';
 }
-function kwForBlock(m, ctx){
+function kwForBlock(m, ctx, lang){
+  lang=lang||'zh';
   const techGoals=['前踢','側踢','下壓','品勢','對打步伐'];
   let tech=(m.goals||[]).find(g=>techGoals.includes(g));
   if(!tech){
@@ -1007,11 +1053,14 @@ function kwForBlock(m, ctx){
     tech=stageMap[m.stage]||'訓練';
   }
   const eq=(m.equipment||[]).filter(Boolean)[0]||'';
-  return ['跆拳道',ageWordOf(ctx),tech,eq,'教學'].filter(Boolean).join(' ');
+  return [tr('跆拳道',lang),tr(ageWordOf(ctx),lang),tr(tech,lang),tr(eq,lang),tr('教學',lang)].filter(Boolean).join(' ');
+}
+function goalKw(ctx, lang){
+  lang=lang||'zh';
+  return [tr('跆拳道',lang),tr(ageWordOf(ctx),lang),...ctx.goals.slice(0,3).map(g=>tr(g,lang)),tr('教學',lang)].filter(Boolean).join(' ');
 }
 function ytSearch(q){return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q);}
-function fbSearch(q){return 'https://www.facebook.com/watch/search/?q='+encodeURIComponent(q);}
-function googleSearch(q){return 'https://www.google.com/search?q='+encodeURIComponent(q+' 影片');}
+function googleSearch(q){return 'https://www.google.com/search?q='+encodeURIComponent(q);}
 
 /* 有 API 金鑰時，課表自動列出真實 YouTube 影片清單（瀏覽器直呼叫，支援 CORS） */
 let _liveCtx=null;
@@ -1023,10 +1072,11 @@ async function loadLiveVideos(L){
     return;
   }
   const c=L.ctx; _liveCtx=c;
-  const q=['跆拳道',ageWordOf(c),...c.goals.slice(0,3),'教學'].filter(Boolean).join(' ');
-  box.innerHTML=`<div class="step-hint">🔄 線上搜尋「${esc(q)}」中…</div>`;
+  const q=goalKw(c, searchLang);
+  const rel=LANG_REL[searchLang]||'zh-Hant';
+  box.innerHTML=`<div class="step-hint">🔄 線上搜尋（${langLabel(searchLang)}）「${esc(q)}」中…</div>`;
   try{
-    const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&relevanceLanguage=zh-Hant&regionCode=TW&safeSearch=strict&q=${encodeURIComponent(q)}&key=${encodeURIComponent(key)}`;
+    const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&relevanceLanguage=${rel}&safeSearch=strict&q=${encodeURIComponent(q)}&key=${encodeURIComponent(key)}`;
     const r=await fetch(url); const d=await r.json();
     if(d.error){
       box.innerHTML=`<div class="ai-hint" style="background:#fef2f2;color:#b91c1c"><b>⚠️ 無法取得影片</b>${esc(d.error.message||'金鑰或配額有誤')}<br>請到 ⚙️ 檢查金鑰、或確認 YouTube Data API v3 已啟用、配額未用完。</div>`;
@@ -1143,24 +1193,8 @@ function renderLesson(){
     });
   }
 
-  // 🔎 線上找教學影片靈感（免金鑰一鍵搜尋）
-  const aw=ageWordOf(c);
-  const goalKw=['跆拳道',aw,...c.goals.slice(0,3),'教學'].filter(Boolean).join(' ');
-  html+=`<div class="sec-h" style="margin-top:18px">🔎 線上找教學影片靈感<span class="line"></span></div>
-    <div class="card" style="padding:14px">
-      <div id="ytLive"></div>
-      <p class="step-hint" style="margin:0 0 10px">點關鍵字，幫你到線上搜尋類似教學影片參考。找到喜歡的，複製連結到「影片庫」就能自動收藏帶縮圖。</p>
-      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍依今日目標</div>
-      <div class="opts" style="margin-bottom:12px">
-        <a class="opt sel" href="${ytSearch(goalKw)}" target="_blank">🔴 YouTube</a>
-        <a class="opt" href="${fbSearch(goalKw)}" target="_blank">🔵 FB</a>
-        <a class="opt" href="${googleSearch(goalKw)}" target="_blank">🔎 Google</a>
-      </div>
-      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍依各段技術（開 YouTube 搜尋）</div>
-      <div class="opts">
-        ${L.blocks.filter(b=>b.m).map(b=>`<a class="opt alt" href="${ytSearch(kwForBlock(b.m,c))}" target="_blank">▶ ${b.m.name}</a>`).join('')}
-      </div>
-    </div>`;
+  // 🔎 線上找教學影片靈感（多語言）
+  html+=`<div id="searchSec"></div>`;
 
   html+=`<div style="height:6px"></div>
     <div class="btn-row">
@@ -1176,8 +1210,35 @@ function renderLesson(){
   $('planResult').innerHTML=html;
   $('planResult').classList.remove('hidden');
   $('planWizard').classList.add('hidden');
+  renderSearchSection(L);
+}
+
+/* 線上找影片區（多語言）：可切換語言，套用到各段技術與自動清單 */
+let _searchLesson=null;
+function renderSearchSection(L){
+  _searchLesson=L;
+  const box=$('searchSec'); if(!box||!L)return;
+  const c=L.ctx;
+  box.innerHTML=`<div class="sec-h" style="margin-top:18px">🔎 線上找教學影片靈感<span class="line"></span></div>
+    <div class="card" style="padding:14px">
+      <div id="ytLive"></div>
+      <p class="step-hint" style="margin:0 0 10px">支援中文／韓文／英文／日文搜尋——韓文、英文的兒童跆拳道影片量很大，能參考的素材更多。找到喜歡的複製連結到「影片庫」即可收藏。</p>
+      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍依今日目標（各語言都幫你搜，一鍵開 YouTube）</div>
+      <div class="opts" style="margin-bottom:12px">
+        ${LANGS.map(([code,label])=>`<a class="opt alt" href="${ytSearch(goalKw(c,code))}" target="_blank">▶ ${label}</a>`).join('')}
+        <a class="opt" href="${googleSearch(goalKw(c,'zh'))}" target="_blank">🔎 Google</a>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍各段技術＋自動清單語言</div>
+      <div class="opts" style="margin-bottom:12px">
+        ${LANGS.map(([code,label])=>`<span class="opt ${searchLang===code?'sel':''}" onclick="setSearchLang('${code}')">${label}</span>`).join('')}
+      </div>
+      <div class="opts">
+        ${L.blocks.filter(b=>b.m).map(b=>`<a class="opt alt" href="${ytSearch(kwForBlock(b.m,c,searchLang))}" target="_blank">▶ ${b.m.name}</a>`).join('')}
+      </div>
+    </div>`;
   loadLiveVideos(L);
 }
+function setSearchLang(code){searchLang=code;write(LS.lang,code);if(_searchLesson)renderSearchSection(_searchLesson);}
 
 function resetWizard(){
   $('planResult').classList.add('hidden');
@@ -1747,6 +1808,7 @@ function go(p){
    ============================================================ */
 function init(){
   ensureSeed();
+  searchLang=read(LS.lang,'zh');
   buildOpts();
   // 還原上次課表（標準 / 精靈，取較新的顯示）
   const last=read(LS.cur,null);
