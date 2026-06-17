@@ -79,6 +79,8 @@ body{
 .opt:active{transform:scale(.96)}
 .opt.sel{background:var(--brand); border-color:var(--brand); color:#fff; box-shadow:0 4px 12px rgba(225,29,72,.3)}
 .opt.sel.alt{background:var(--accent); border-color:var(--accent); box-shadow:0 4px 12px rgba(14,165,233,.3)}
+a.opt{text-decoration:none}
+a.opt.alt{background:#fff; border-color:var(--accent); color:var(--accent)}
 /* Buttons */
 .btn{
   width:100%; border:0; border-radius:14px; padding:15px; font-size:16px; font-weight:800;
@@ -698,6 +700,27 @@ function buildLessonObject(ctx){
   };
 }
 
+/* ---------- 線上找影片：關鍵字產生 + 各平台搜尋網址（免金鑰） ---------- */
+function ageWordOf(ctx){
+  if(['幼幼班','幼兒班'].includes(ctx.cls))return '幼兒';
+  if(/國小/.test(ctx.age))return '兒童';
+  if(ctx.age==='國中')return '青少年';
+  return '';
+}
+function kwForBlock(m, ctx){
+  const techGoals=['前踢','側踢','下壓','品勢','對打步伐'];
+  let tech=(m.goals||[]).find(g=>techGoals.includes(g));
+  if(!tech){
+    const stageMap={'暖身':'暖身遊戲','體能':'體能訓練','敏捷':'敏捷訓練','基本技術':'基本動作','闖關':'闖關遊戲','收操':'伸展收操'};
+    tech=stageMap[m.stage]||'訓練';
+  }
+  const eq=(m.equipment||[]).filter(Boolean)[0]||'';
+  return ['跆拳道',ageWordOf(ctx),tech,eq,'教學'].filter(Boolean).join(' ');
+}
+function ytSearch(q){return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q);}
+function fbSearch(q){return 'https://www.facebook.com/watch/search/?q='+encodeURIComponent(q);}
+function googleSearch(q){return 'https://www.google.com/search?q='+encodeURIComponent(q+' 影片');}
+
 let CURRENT=null;
 
 function generateLesson(){
@@ -774,11 +797,29 @@ function renderLesson(){
     });
   }
 
+  // 🔎 線上找教學影片靈感（免金鑰一鍵搜尋）
+  const aw=ageWordOf(c);
+  const goalKw=['跆拳道',aw,...c.goals.slice(0,3),'教學'].filter(Boolean).join(' ');
+  html+=`<div class="sec-h" style="margin-top:18px">🔎 線上找教學影片靈感<span class="line"></span></div>
+    <div class="card" style="padding:14px">
+      <p class="step-hint" style="margin:0 0 10px">點關鍵字，幫你到線上搜尋類似教學影片參考。找到喜歡的，複製連結到「影片庫」就能自動收藏帶縮圖。</p>
+      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍依今日目標</div>
+      <div class="opts" style="margin-bottom:12px">
+        <a class="opt sel" href="${ytSearch(goalKw)}" target="_blank">🔴 YouTube</a>
+        <a class="opt" href="${fbSearch(goalKw)}" target="_blank">🔵 FB</a>
+        <a class="opt" href="${googleSearch(goalKw)}" target="_blank">🔎 Google</a>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍依各段技術（開 YouTube 搜尋）</div>
+      <div class="opts">
+        ${L.blocks.filter(b=>b.m).map(b=>`<a class="opt alt" href="${ytSearch(kwForBlock(b.m,c))}" target="_blank">▶ ${b.m.name}</a>`).join('')}
+      </div>
+    </div>`;
+
   html+=`<div style="height:6px"></div>
     <div class="btn-row">
       <button class="btn sec sm" onclick="go('parent')">💬 產生家長回饋</button>
       <button class="btn sec sm" onclick="go('assist')">🙌 助教任務</button>
-    </div>
+    </div>`;
     <div style="height:8px"></div>
     <div class="btn-row">
       <button class="btn sec sm" onclick="printLesson()">🖨️ 列印 / 匯出 PDF</button>
