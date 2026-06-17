@@ -165,6 +165,9 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
 }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
 .vid-link{display:inline-flex; align-items:center; gap:5px; color:var(--accent); font-size:12px; font-weight:700; text-decoration:none; margin-top:4px}
+.vthumb{position:relative; border-radius:10px; overflow:hidden; margin-bottom:8px; background:#0f172a; aspect-ratio:16/9}
+.vthumb img{width:100%; height:100%; object-fit:cover; display:block}
+.vthumb .play{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.6); background:rgba(0,0,0,.12)}
 .feedback-box{background:#f0fdf4; border:1.5px dashed #86efac; border-radius:12px; padding:14px; white-space:pre-wrap; font-size:13px; line-height:1.7; color:#14532d}
 .histcard{background:#fff; border-radius:12px; padding:13px; margin-bottom:10px; box-shadow:var(--shadow); display:flex; align-items:center; gap:12px}
 .histcard .d{background:var(--soft); border-radius:10px; padding:8px 10px; text-align:center; min-width:50px}
@@ -762,6 +765,7 @@ function renderLesson(){
     html+=`<div class="sec-h" style="margin-top:18px">🎬 推薦教學影片<span class="line"></span></div>`;
     L.recVideos.forEach(v=>{
       html+=`<div class="litem">
+        ${v.thumb?`<a href="${v.url}" target="_blank" onclick="event.stopPropagation()"><div class="vthumb"><img src="${escAttr(v.thumb)}" onerror="this.parentNode.style.display='none'"><span class="play">▶</span></div></a>`:''}
         <h4>${v.title}</h4>
         <div class="tags"><span class="tag b">${v.stage}</span><span class="tag">${v.level}</span>${(v.goals||[]).map(g=>`<span class="tag g">${g}</span>`).join('')}</div>
         <a class="vid-link" href="${v.url}" target="_blank">▶ 觀看影片</a>
@@ -1070,6 +1074,41 @@ function saveMaterial(){
 /* ============================================================
    影片庫 CRUD
    ============================================================ */
+/* 從連結解析 YouTube 影片 ID（支援 watch / youtu.be / shorts / embed） */
+function ytId(url){
+  if(!url)return '';
+  const m=url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m?m[1]:'';
+}
+function ytThumb(url){const id=ytId(url);return id?`https://img.youtube.com/vi/${id}/hqdefault.jpg`:'';}
+
+/* 貼連結 → 自動搜尋帶入標題與縮圖（YouTube 直接解析縮圖；標題用 noembed，免金鑰、支援 CORS） */
+let _autofillBusy=false;
+async function autofillVideo(){
+  const url=($('v_url')?.value||'').trim();
+  if(!url||_autofillBusy)return;
+  _autofillBusy=true;
+  let thumb=ytThumb(url), title='';
+  // 先放上 YouTube 縮圖預覽
+  if(thumb)showThumbPrev(thumb);
+  try{
+    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),6000);
+    const r=await fetch('https://noembed.com/embed?url='+encodeURIComponent(url),{signal:ctrl.signal});
+    clearTimeout(t);
+    const d=await r.json();
+    if(d&&d.title&&!d.error)title=d.title;
+    if(!thumb&&d&&d.thumbnail_url)thumb=d.thumbnail_url;
+  }catch(e){/* 離線或來源不支援，靜默 */}
+  if(thumb){$('v_thumb').value=thumb;showThumbPrev(thumb);}
+  if(title&&!$('v_title').value.trim())$('v_title').value=title;
+  _autofillBusy=false;
+  if(title||thumb)toast('已自動帶入'); else toast('此來源無法自動取得，請手動填寫');
+}
+function showThumbPrev(src){
+  const el=$('v_thumbPrev'); if(!el)return;
+  el.innerHTML=`<img src="${escAttr(src)}" onerror="this.style.display='none'" style="width:100%;border-radius:10px;border:1px solid var(--line)">`;
+}
+
 function renderVideos(){
   const q=($('vidSearch').value||'').toLowerCase();
   let vids=read(LS.vid,[]);
@@ -1078,6 +1117,7 @@ function renderVideos(){
   if(!vids.length){el.innerHTML='<div class="empty"><span class="em">🎬</span>還沒有影片，點上方按鈕新增</div>';return;}
   el.innerHTML=vids.map(v=>`
     <div class="litem">
+      ${v.thumb?`<a href="${v.url}" target="_blank"><div class="vthumb"><img src="${escAttr(v.thumb)}" onerror="this.parentNode.style.display='none'"><span class="play">▶</span></div></a>`:''}
       <h4>${v.title}</h4>
       <div class="tags">
         <span class="tag b">${v.stage}</span><span class="tag">${v.level}</span>
@@ -1099,8 +1139,12 @@ function openVideoModal(id){
   modal(`<button class="close" onclick="closeModal()">×</button>
     <h3>${v?'編輯影片':'新增教學影片'}</h3>
     <input type="hidden" id="v_id" value="${v?v.id:''}">
-    <label class="fl">影片標題 *</label><input class="f" id="v_title" value="${v?escAttr(v.title):''}">
-    <label class="fl">影片連結 *</label><input class="f" id="v_url" value="${v?escAttr(v.url):''}" placeholder="YouTube / FB Reels / IG 連結">
+    <label class="fl">影片連結 *</label>
+    <input class="f" id="v_url" value="${v?escAttr(v.url):''}" placeholder="貼上 YouTube / FB Reels / IG 連結" onchange="autofillVideo()" onpaste="setTimeout(autofillVideo,120)">
+    <button class="btn sec sm" type="button" onclick="autofillVideo()" style="margin-top:8px">🪄 自動帶入標題與縮圖</button>
+    <input type="hidden" id="v_thumb" value="${v?escAttr(v.thumb||''):''}">
+    <div id="v_thumbPrev" style="margin-top:8px">${v&&v.thumb?`<img src="${escAttr(v.thumb)}" style="width:100%;border-radius:10px;border:1px solid var(--line)">`:''}</div>
+    <label class="fl">影片標題 *</label><input class="f" id="v_title" value="${v?escAttr(v.title):''}" placeholder="貼連結後可自動帶入，亦可手動修改">
     <label class="fl">適合年齡</label><div class="opts" id="v_ages">${chk(AGES,v?.ages)}</div>
     <label class="fl">適合班級</label><div class="opts" id="v_classes">${chk(CLASSES,v?.classes)}</div>
     <label class="fl">器材</label><div class="opts" id="v_equip">${chk(EQUIP,v?.equipment)}</div>
@@ -1116,7 +1160,7 @@ function saveVideo(){
   const title=$('v_title').value.trim(), url=$('v_url').value.trim();
   if(!title){toast('請輸入影片標題');return;}
   if(!url){toast('請輸入影片連結');return;}
-  const obj={id:$('v_id').value||uid(),title,url,
+  const obj={id:$('v_id').value||uid(),title,url,thumb:$('v_thumb').value.trim()||ytThumb(url),
     ages:getChecked('v_ages'),classes:getChecked('v_classes'),equipment:getChecked('v_equip'),
     goals:getChecked('v_goals'),stage:$('v_stage').value,level:$('v_level').value,note:$('v_note').value.trim()};
   let vids=read(LS.vid,[]);const i=vids.findIndex(v=>v.id===obj.id);
