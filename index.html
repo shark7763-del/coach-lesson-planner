@@ -1520,12 +1520,9 @@ function renderSearchSection(L){
         ${LANGS.map(([code,label])=>`<a class="opt alt" href="${ytSearch(goalKw(c,code))}" target="_blank">▶ ${label}</a>`).join('')}
         <a class="opt" href="${googleSearch(goalKw(c,'zh'))}" target="_blank">🔎 Google</a>
       </div>
-      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍各段技術＋自動清單語言</div>
-      <div class="opts" style="margin-bottom:12px">
-        ${LANGS.map(([code,label])=>`<span class="opt ${searchLang===code?'sel':''}" onclick="setSearchLang('${code}')">${label}</span>`).join('')}
-      </div>
+      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍自動影片清單語言</div>
       <div class="opts">
-        ${L.blocks.filter(b=>b.m).map(b=>`<a class="opt alt" href="${ytSearch(kwForBlock(b.m,c,searchLang))}" target="_blank">▶ ${b.m.name}</a>`).join('')}
+        ${LANGS.map(([code,label])=>`<span class="opt ${searchLang===code?'sel':''}" onclick="setSearchLang('${code}')">${label}</span>`).join('')}
       </div>
     </div>`;
   loadLiveVideos(L);
