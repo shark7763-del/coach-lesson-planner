@@ -186,6 +186,28 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
 .ai-hint b{display:block; margin-bottom:3px}
 .fab{position:fixed; bottom:84px; right:calc(50% - 280px + 16px); background:var(--brand); color:#fff; width:54px; height:54px; border-radius:50%; border:0; font-size:26px; box-shadow:0 8px 20px rgba(225,29,72,.4); cursor:pointer; z-index:35}
 @media(max-width:592px){.fab{right:16px}}
+/* 標準課表段落編輯器 */
+.seg-block{background:#fff;border-radius:14px;margin-bottom:12px;box-shadow:var(--shadow);border-left:5px solid var(--brand);overflow:hidden}
+.seg-head{padding:11px 13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg-head .tline{background:var(--brand);color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:7px;white-space:nowrap}
+.seg-head .snm{font-weight:800;font-size:15px;flex:1;min-width:90px}
+.seg-head .mins{width:54px;border:1.5px solid var(--line);border-radius:8px;padding:5px;font-size:13px;text-align:center;font-weight:700}
+.seg-tools{display:flex;gap:4px;padding:0 13px 10px;flex-wrap:wrap}
+.seg-tools button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700;color:#475569;cursor:pointer}
+.seg-tools button.p{color:var(--brand);border-color:#fecdd3}
+.seg-body{padding:0 13px 13px}
+.seg-field{margin:9px 0;font-size:13px}
+.seg-field .k{font-weight:800;font-size:12px;color:var(--brand2);display:block;margin-bottom:3px}
+.seg-field.warm{background:#f0fdf4;border-radius:8px;padding:8px 10px}
+.seg-field.coach{background:#fef2f2;border-radius:8px;padding:8px 10px}
+.seg-field.assist{background:#eff6ff;border-radius:8px;padding:8px 10px}
+.seg-field.safe{background:#fffbeb;border-radius:8px;padding:8px 10px}
+.seg-field.parent{background:#f5f3ff;border-radius:8px;padding:8px 10px}
+.seg-field ul{margin:4px 0 0;padding-left:18px}
+.seg-field li{margin:3px 0}
+.act-edit{display:flex;gap:6px;margin:5px 0}
+.act-edit input{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:7px;font-size:13px}
+.act-edit button{border:1px solid #fecdd3;background:#fff;color:var(--brand);border-radius:8px;padding:0 10px;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
@@ -210,6 +232,21 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
         <span>✅ 教學重點</span><span>✅ 家長回饋</span><span>✅ 影片靈感</span>
       </div>
     </div>
+
+    <!-- 標準課表模板（核心入口） -->
+    <div class="card" style="border:2px solid var(--brand)">
+      <div class="step-title" style="font-size:16px">🥋 標準課表模板</div>
+      <p class="step-hint" style="margin-bottom:10px">只要選課程總時間，系統依「做操暖身 → 體能遊戲 → 基本動作 → 踢靶應用」自動產生一堂可直接執行的課，每段都能修改。</p>
+      <div class="opts" id="optStdTime"></div>
+      <div style="margin-top:10px" id="stdCustomWrap" class="hidden">
+        <label class="fl" style="margin-top:0">自訂總時間（分鐘）</label>
+        <input class="f" id="stdCustomMin" type="number" min="20" max="180" placeholder="例：75" value="75">
+      </div>
+      <div style="height:12px"></div>
+      <button class="btn" onclick="generateStandard()">⚡ 產生標準課表</button>
+    </div>
+
+    <div class="sec-h" style="margin:18px 0 12px">或，進階自訂備課<span class="line"></span></div>
 
     <div class="card">
       <div class="step-title"><span class="step-num">1</span>選擇班級</div>
@@ -362,7 +399,8 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
    clp_materials / clp_videos / clp_history / clp_current
    ============================================================ */
 const LS = {
-  mat:'clp_materials', vid:'clp_videos', hist:'clp_history', cur:'clp_current', seed:'clp_seeded_v1', ytkey:'clp_yt_key'
+  mat:'clp_materials', vid:'clp_videos', hist:'clp_history', cur:'clp_current', seed:'clp_seeded_v1', ytkey:'clp_yt_key',
+  std:'clp_std', tpl:'clp_templates'
 };
 const $ = id => document.getElementById(id);
 const read = (k,d)=>{ try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d} };
@@ -628,6 +666,260 @@ function buildOpts(){
   single('optIntensity',INTENSITY,'intensity');
   // 預設強度
   setTimeout(()=>{ const ic=$('optIntensity'); if(ic.children[1])ic.children[1].classList.add('sel'); sel.intensity='一般型'; },0);
+  // 標準課表時間選擇
+  const tc=$('optStdTime'); tc.innerHTML='';
+  [['100','100分鐘'],['90','90分鐘'],['60','60分鐘'],['45','45分鐘'],['custom','自訂']].forEach(([v,label],idx)=>{
+    const d=document.createElement('div'); d.className='opt'; d.textContent=label; d.dataset.v=v;
+    if(idx===0)d.classList.add('sel');
+    d.onclick=()=>{ stdTimeSel=v; [...tc.children].forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); $('stdCustomWrap').classList.toggle('hidden', v!=='custom'); };
+    tc.appendChild(d);
+  });
+}
+let stdTimeSel='100';
+
+/* ============================================================
+   標準課表模板（系統核心）
+   選總時間 → 自動產生 做操/體能遊戲/基本動作/踢靶應用 四段可編輯課表
+   ============================================================ */
+let STD=null;
+const STD_PRESETS={100:[10,30,30,30],90:[10,25,25,30],60:[5,20,15,20],45:[5,15,10,15]};
+
+function stdDefaultSegments(){
+  return [
+    {id:uid(),name:'做操暖身',min:10,
+      purpose:'喚醒身體、收心進入上課狀態，建立規矩與專注。',
+      activities:[{id:uid(),text:'整隊行禮、點名問好、宣布今日目標'},{id:uid(),text:'頸→肩→腰→髖→膝→踝逐關節繞環'},{id:uid(),text:'原地高抬腿、開合跳、踏步活化'},{id:uid(),text:'馬步／弓步靜態伸展'}],
+      coach:'動作放慢放大、帶孩子數八拍；先收心再開始，眼睛看教練。',
+      assistant:'站排頭帶動作、整隊、提醒坐姿與秩序、記錄缺席。',
+      safety:'繞環由慢漸快、頸部不過度後仰；場地淨空，保持間距。',
+      warmth:'蹲下來和孩子平視、先叫名字再給指令，微笑開場讓孩子放鬆。',
+      parent:'暖身幫助孩子收心、預防運動傷害，也培養上課的規矩與專注力。'},
+    {id:uid(),name:'體能遊戲',min:30,
+      purpose:'透過遊戲訓練反應、協調、爆發力，並學會排隊等待、遵守規則與團隊合作——不是把孩子玩累，而是邊玩邊練能力。',
+      activities:[{id:uid(),text:'紅綠燈衝刺：訓練反應與「煞得住」'},{id:uid(),text:'敏捷圈／角錐快腳：訓練協調'},{id:uid(),text:'折返接力賽：爆發力＋團隊合作'},{id:uid(),text:'聽指令搶位遊戲：守規則＋排隊等待'}],
+      coach:'規則先講清楚再開始；強調「排隊、輪流、守規則」也是訓練；用計時與比賽製造氣氛，但別只追求累。',
+      assistant:'當裁判記分、維持排隊秩序、鼓勵落後的孩子、控制安全間距。',
+      safety:'移動路線淨空、孩子間隔一個手臂以上、避免衝撞與推擠。',
+      warmth:'多喊名字加油，輸的隊也要肯定努力，讓每個孩子都覺得自己有參與。',
+      parent:'這段在「玩中學」：練反應、協調與爆發力，同時教孩子排隊、守規則、和同伴合作。'},
+    {id:uid(),name:'基本動作',min:30,
+      purpose:'讓孩子聽得懂、願意做、動作方向正確，慢慢建立跆拳道基礎——不追求一次就完美。',
+      activities:[{id:uid(),text:'立正／準備姿勢／併步（聽口令）'},{id:uid(),text:'馬步下衝拳：方向與發力'},{id:uid(),text:'前踢分解：提膝→伸腿→收腳'},{id:uid(),text:'基本步伐／品勢慢練'}],
+      coach:'口令簡單、分解示範；先求方向對、再求標準；多給「再一次就更好」的正向回饋，不催不罵。',
+      assistant:'站隊伍前當鏡像示範、個別糾正方向錯的孩子、幫忙數次數。',
+      safety:'保持前後左右間距，揮拳踢腿時不會碰到同伴。',
+      warmth:'動作做不好不責備，肯定願意嘗試；用「你比剛剛更好了」幫孩子建立信心。',
+      parent:'這段在打基礎：讓孩子聽懂指令、把動作方向做對，跆拳道的基本功一步步穩穩建立。'},
+    {id:uid(),name:'踢靶應用',min:30,
+      purpose:'讓孩子敢踢、踢得到、踢得有力，有成就感、感覺自己變強，進步看得見。',
+      activities:[{id:uid(),text:'前踢踢靶：提膝→踢→收腳'},{id:uid(),text:'連續踢靶比次數（敢踢）'},{id:uid(),text:'移動踢靶：確保每個孩子踢得到'},{id:uid(),text:'闖關踢靶挑戰：放大成就感'}],
+      coach:'靶位調到孩子踢得到的高度；每個孩子都要踢到、踢出聲音；用「哇好大力！」放大成就感。',
+      assistant:'持靶調整高度、數次數、每個孩子踢完都拍手鼓勵。',
+      safety:'一人一靶、踢擊區間距足夠、持靶者站穩並對準。',
+      warmth:'讓每個孩子都成功踢到、被看見、被稱讚，帶著笑容與成就感下課。',
+      parent:'這段讓孩子敢踢、踢得到、踢得有力，建立成就感與自信，進步家長一眼看得見。'},
+  ];
+}
+function scaleMinutes(total){
+  const base=[10,30,30,30];
+  const m=base.map(b=>Math.max(1,Math.round(b*total/100)));
+  m[3]=Math.max(1, total-m[0]-m[1]-m[2]);
+  return m;
+}
+function segSum(S){return S.segments.reduce((a,s)=>a+(+s.min||0),0);}
+
+function generateStandard(){
+  let total, mins;
+  if(stdTimeSel==='custom'){
+    total=Math.max(20,Math.min(180, parseInt($('stdCustomMin').value)||75));
+    mins=scaleMinutes(total);
+  }else{
+    total=parseInt(stdTimeSel);
+    mins=STD_PRESETS[total]||scaleMinutes(total);
+  }
+  const segs=stdDefaultSegments();
+  segs.forEach((s,i)=>{ if(mins[i]!=null)s.min=mins[i]; });
+  STD={id:uid(),date:new Date().toISOString(),segments:segs};
+  stdPersist();
+  renderStandard();
+  window.scrollTo(0,0);
+  toast('已產生 '+total+' 分鐘標準課表');
+}
+
+function renderStandard(){
+  const S=STD; if(!S)return;
+  const total=segSum(S); let cum=0;
+  let html=`<div class="lesson-head">
+    <h2>🥋 標準課表 · ${total} 分鐘</h2>
+    <div class="meta">共 <b>${S.segments.length}</b> 段 · 段落時間相加 <b>${total}</b> 分鐘 · 每段可自由編輯</div>
+  </div>
+  <div class="btn-row" style="margin-bottom:12px">
+    <button class="btn sec sm" onclick="saveStdTemplate()">💾 存為常用模板</button>
+    <button class="btn sec sm" onclick="openTemplates()">📂 載入模板</button>
+  </div>`;
+  S.segments.forEach((seg,i)=>{
+    const start=cum, end=cum+(+seg.min||0); cum=end;
+    html+=`<div class="seg-block">
+      <div class="seg-head">
+        <span class="tline">${start}-${end}分</span>
+        <span class="snm">${esc(seg.name)}</span>
+        <input class="mins" type="number" min="1" value="${seg.min}" onchange="stdSetMin(${i},this.value)"> 分
+      </div>
+      <div class="seg-tools">
+        <button onclick="stdEditSeg(${i})">✏️ 編輯內容</button>
+        <button onclick="stdMoveSeg(${i},-1)">↑ 上移</button>
+        <button onclick="stdMoveSeg(${i},1)">↓ 下移</button>
+        <button onclick="stdDupSeg(${i})">⧉ 複製</button>
+        <button class="p" onclick="stdDelSeg(${i})">🗑️ 刪除</button>
+      </div>
+      <div class="seg-body">
+        <div class="seg-field"><span class="k">🎯 今日目的</span>${esc(seg.purpose)||'<span style="color:#94a3b8">（未填）</span>'}</div>
+        <div class="seg-field"><span class="k">📝 實際活動內容</span><ul>${seg.activities.map(a=>`<li>${esc(a.text)}</li>`).join('')||'<li style="color:#94a3b8">（尚無小活動，點「編輯內容」新增）</li>'}</ul></div>
+        <div class="seg-field coach"><span class="k">🧑‍🏫 主教練教學提醒</span>${esc(seg.coach)}</div>
+        <div class="seg-field assist"><span class="k">🙌 助教任務卡</span>${esc(seg.assistant)}</div>
+        <div class="seg-field safe"><span class="k">⚠️ 安全提醒</span>${esc(seg.safety)}</div>
+        <div class="seg-field warm"><span class="k">🌱 教學溫度提醒</span>${esc(seg.warmth)}</div>
+        <div class="seg-field parent"><span class="k">👪 家長看得懂的成長說明</span>${esc(seg.parent)}</div>
+      </div>
+    </div>`;
+  });
+  html+=`<button class="btn sec sm" onclick="stdAddSeg()" style="margin-bottom:12px">＋ 新增段落</button>
+    <div class="btn-row">
+      <button class="btn sec sm" onclick="stdParent()">💬 產生家長回饋</button>
+      <button class="btn sec sm" onclick="stdPrint()">🖨️ 列印 / PDF</button>
+    </div>
+    <div id="stdParentOut" style="margin-top:10px"></div>
+    <div style="height:8px"></div>
+    <button class="btn dark" onclick="resetWizard()">↺ 重新選時間</button>`;
+  $('planResult').innerHTML=html;
+  $('planResult').classList.remove('hidden');
+  $('planWizard').classList.add('hidden');
+}
+
+function stdPersist(){write(LS.std,STD);saveHistoryStd(STD);}
+function stdSetMin(i,v){STD.segments[i].min=Math.max(1,parseInt(v)||1);stdPersist();renderStandard();}
+function stdMoveSeg(i,dir){const j=i+dir;if(j<0||j>=STD.segments.length)return;const a=STD.segments;[a[i],a[j]]=[a[j],a[i]];stdPersist();renderStandard();}
+function stdDupSeg(i){const c=JSON.parse(JSON.stringify(STD.segments[i]));c.id=uid();c.name+='（複製）';(c.activities||[]).forEach(a=>a.id=uid());STD.segments.splice(i+1,0,c);stdPersist();renderStandard();toast('已複製段落');}
+function stdDelSeg(i){if(STD.segments.length<=1){toast('至少保留一段');return;}if(!confirm('刪除「'+STD.segments[i].name+'」這一段？'))return;STD.segments.splice(i,1);stdPersist();renderStandard();}
+function stdAddSeg(){STD.segments.push({id:uid(),name:'新段落',min:10,purpose:'',activities:[],coach:'',assistant:'',safety:'',warmth:'',parent:''});stdPersist();renderStandard();stdEditSeg(STD.segments.length-1);}
+
+function stdEditSeg(i){
+  const s=STD.segments[i];
+  modal(`<button class="close" onclick="closeModal()">×</button>
+    <h3>✏️ 編輯段落</h3>
+    <input type="hidden" id="se_i" value="${i}">
+    <label class="fl">段落名稱</label><input class="f" id="se_name" value="${escAttr(s.name)}">
+    <label class="fl">時間（分鐘）</label><input class="f" id="se_min" type="number" min="1" value="${s.min}">
+    <label class="fl">🎯 今日目的</label><textarea class="f" id="se_purpose">${esc(s.purpose)}</textarea>
+    <label class="fl">📝 實際活動內容（小活動，可增刪）</label>
+    <div id="se_acts"></div>
+    <button class="btn sec sm" type="button" onclick="seAddActRow('')" style="margin-top:6px">＋ 新增小活動</button>
+    <label class="fl">🧑‍🏫 主教練教學提醒</label><textarea class="f" id="se_coach">${esc(s.coach)}</textarea>
+    <label class="fl">🙌 助教任務卡</label><textarea class="f" id="se_assistant">${esc(s.assistant)}</textarea>
+    <label class="fl">⚠️ 安全提醒</label><textarea class="f" id="se_safety">${esc(s.safety)}</textarea>
+    <label class="fl">🌱 教學溫度提醒</label><textarea class="f" id="se_warmth">${esc(s.warmth)}</textarea>
+    <label class="fl">👪 家長看得懂的成長說明</label><textarea class="f" id="se_parent">${esc(s.parent)}</textarea>
+    <div style="height:14px"></div>
+    <button class="btn" onclick="stdSaveSeg()">💾 儲存段落</button><div style="height:8px"></div>
+  `);
+  const box=$('se_acts'); box.innerHTML='';
+  (s.activities||[]).forEach(a=>seAddActRow(a.text));
+  if(!s.activities||!s.activities.length)seAddActRow('');
+}
+function seAddActRow(text){
+  const box=$('se_acts'); if(!box)return;
+  const row=document.createElement('div'); row.className='act-edit';
+  const inp=document.createElement('input'); inp.value=text||''; inp.placeholder='小活動內容';
+  const btn=document.createElement('button'); btn.textContent='✕'; btn.type='button'; btn.onclick=()=>row.remove();
+  row.appendChild(inp); row.appendChild(btn); box.appendChild(row);
+}
+function stdSaveSeg(){
+  const i=+$('se_i').value; const s=STD.segments[i];
+  s.name=$('se_name').value.trim()||'段落';
+  s.min=Math.max(1,parseInt($('se_min').value)||1);
+  s.purpose=$('se_purpose').value.trim();
+  s.coach=$('se_coach').value.trim();
+  s.assistant=$('se_assistant').value.trim();
+  s.safety=$('se_safety').value.trim();
+  s.warmth=$('se_warmth').value.trim();
+  s.parent=$('se_parent').value.trim();
+  s.activities=[...$('se_acts').querySelectorAll('input')].map(inp=>inp.value.trim()).filter(Boolean).map(t=>({id:uid(),text:t}));
+  stdPersist();closeModal();renderStandard();toast('已儲存');
+}
+
+/* 常用模板 */
+function saveStdTemplate(){
+  const name=prompt('模板名稱：','我的標準課表');
+  if(!name)return;
+  const tpls=read(LS.tpl,[]);
+  tpls.unshift({id:uid(),name,segments:JSON.parse(JSON.stringify(STD.segments))});
+  write(LS.tpl,tpls);toast('已儲存模板：'+name);
+}
+function openTemplates(){
+  const tpls=read(LS.tpl,[]);
+  modal(`<button class="close" onclick="closeModal()">×</button>
+    <h3>📂 常用模板</h3>
+    ${tpls.length?tpls.map(t=>`<div class="litem">
+      <h4>${esc(t.name)}</h4>
+      <p>${t.segments.map(s=>esc(s.name)+' '+s.min+'分').join('、')}</p>
+      <div class="acts">
+        <button onclick="loadTemplate('${t.id}')">📥 套用</button>
+        <button class="del" onclick="delTemplate('${t.id}')">🗑️ 刪除</button>
+      </div>
+    </div>`).join(''):'<div class="empty"><span class="em">📂</span>還沒有儲存的模板</div>'}
+  `);
+}
+function loadTemplate(id){
+  const t=read(LS.tpl,[]).find(x=>x.id===id);if(!t)return;
+  STD={id:uid(),date:new Date().toISOString(),segments:JSON.parse(JSON.stringify(t.segments))};
+  stdPersist();closeModal();renderStandard();go('plan');window.scrollTo(0,0);toast('已套用模板');
+}
+function delTemplate(id){
+  if(!confirm('刪除此模板？'))return;
+  write(LS.tpl,read(LS.tpl,[]).filter(x=>x.id!==id));openTemplates();
+}
+
+/* 家長回饋（標準課表版） */
+function stdParent(){
+  const date=new Date();const ds=`${date.getMonth()+1}/${date.getDate()}`;
+  const txt=`🥋【${ds} 今日訓練回饋】\n\n各位家長好！今天的課程內容與孩子的成長重點 👇\n\n`+
+    STD.segments.map(s=>`📌 ${s.name}（${s.min}分鐘）\n${s.parent||s.purpose}`).join('\n\n')+
+    `\n\n😊 孩子們專注參與、勇於嘗試，非常值得鼓勵！\n🥋 我們不只教踢腿，更培養禮貌、紀律、專注與自信。\n🌟 回家可以請孩子示範今天學到的動作，給他一個大大的讚！\n\n下次上課見 👊`;
+  $('stdParentOut').innerHTML=`<div class="feedback-box">${txt.replace(/</g,'&lt;')}</div>
+    <div style="height:10px"></div>
+    <button class="btn sm" onclick="copyStdParent()">📋 複製內容</button>`;
+  window._stdfb=txt;
+}
+function copyStdParent(){const t=window._stdfb||'';navigator.clipboard?.writeText(t).then(()=>toast('已複製，貼到 LINE 群組即可')).catch(()=>toast('複製失敗'));}
+
+/* 列印 / PDF（標準課表版） */
+function stdPrint(){
+  if(!STD)return;
+  const d=new Date(STD.date);const ds=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+  let cum=0;
+  const rows=STD.segments.map(s=>{
+    const start=cum,end=cum+(+s.min||0);cum=end;
+    return `<tr><td class="t">${start}-${end}分<br><b>${esc(s.name)}</b></td><td>
+      <div class="li"><b>今日目的：</b>${esc(s.purpose)}</div>
+      <div class="li"><b>活動內容：</b><ul>${s.activities.map(a=>`<li>${esc(a.text)}</li>`).join('')}</ul></div>
+      <div class="li"><b>主教練提醒：</b>${esc(s.coach)}</div>
+      <div class="li"><b>助教任務：</b>${esc(s.assistant)}</div>
+      <div class="li"><b>安全提醒：</b>${esc(s.safety)}</div>
+      <div class="li"><b>教學溫度：</b>${esc(s.warmth)}</div>
+      <div class="li"><b>家長說明：</b>${esc(s.parent)}</div>
+    </td></tr>`;
+  }).join('');
+  const html=`<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><title>標準課表 ${ds}</title>
+  <style>*{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;box-sizing:border-box}body{margin:24px;color:#0f172a}
+  h1{font-size:20px;margin:0 0 4px;border-bottom:3px solid #e11d48;padding-bottom:8px}
+  table{width:100%;border-collapse:collapse;margin-top:12px}td{border:1px solid #cbd5e1;padding:8px 10px;vertical-align:top;font-size:12px}
+  td.t{width:110px;background:#f1f5f9;text-align:center;font-size:11px}.li{margin:4px 0;line-height:1.5}.li b{color:#be123c}
+  ul{margin:4px 0;padding-left:18px}.ft{margin-top:16px;font-size:11px;color:#94a3b8;text-align:center}@media print{body{margin:12mm}}</style></head>
+  <body><h1>🥋 標準課表 · ${segSum(STD)} 分鐘</h1><div style="font-size:12px;color:#475569">日期：${ds}</div>
+  <table><tbody>${rows}</tbody></table>
+  <div class="ft">道館教練備課助手 · 列印於 ${new Date().toLocaleString('zh-TW')}</div>
+  <script>window.onload=function(){window.print()}<\/script></body></html>`;
+  const w=window.open('','_blank');if(!w){toast('請允許彈出視窗');return;}w.document.write(html);w.document.close();
 }
 
 /* ============================================================
@@ -1032,7 +1324,15 @@ function copyFb(){
    ============================================================ */
 function saveHistory(L){
   const h=read(LS.hist,[]);
-  h.unshift({id:L.id,date:L.date,cls:L.ctx.cls,age:L.ctx.age,goals:L.ctx.goals,equip:L.ctx.equip,intensity:L.ctx.intensity,blocks:L.blocks});
+  h.unshift({id:L.id,date:L.date,mode:'wizard',cls:L.ctx.cls,age:L.ctx.age,goals:L.ctx.goals,equip:L.ctx.equip,intensity:L.ctx.intensity,blocks:L.blocks});
+  write(LS.hist, h.slice(0,300));
+}
+function saveHistoryStd(S){
+  const h=read(LS.hist,[]);
+  // 同一張標準課表多次儲存時更新而非重複
+  const i=h.findIndex(x=>x.id===S.id);
+  const rec={id:S.id,date:S.date,mode:'standard',totalMin:segSum(S),segments:S.segments};
+  if(i>=0)h[i]=rec; else h.unshift(rec);
   write(LS.hist, h.slice(0,300));
 }
 let histFilter='all';
@@ -1051,11 +1351,14 @@ function renderHist(){
   if(!h.length){el.innerHTML='<div class="empty"><span class="em">🗓️</span>這個區間還沒有課表</div>';return;}
   el.innerHTML=h.map(x=>{
     const d=new Date(x.date);
+    const isStd=x.mode==='standard';
+    const title=isStd?`🥋 標準課表 · ${x.totalMin}分鐘`:`${x.cls} · ${x.age}`;
+    const sub=isStd?`${(x.segments||[]).map(s=>s.name).join(' → ')}`:`${(x.goals||[]).join('、')} ｜ ${x.intensity||''}`;
     return `<div class="histcard">
       <div class="d"><div class="dd">${d.getDate()}</div><div class="mm">${d.getMonth()+1}月</div></div>
       <div class="info" onclick="viewHist('${x.id}')">
-        <h4>${x.cls} · ${x.age}</h4>
-        <p>${x.goals.join('、')} ｜ ${x.intensity}</p>
+        <h4>${title}</h4>
+        <p>${sub}</p>
       </div>
       <button class="x" onclick="delHist('${x.id}')">🗑️</button>
     </div>`;
@@ -1063,6 +1366,10 @@ function renderHist(){
 }
 function viewHist(id){
   const x=read(LS.hist,[]).find(h=>h.id===id); if(!x)return;
+  if(x.mode==='standard'){
+    STD={id:x.id,date:x.date,segments:JSON.parse(JSON.stringify(x.segments))};
+    write(LS.std,STD); renderStandard(); go('plan'); window.scrollTo(0,0); return;
+  }
   CURRENT={id:x.id,date:x.date,ctx:{cls:x.cls,age:x.age,size:'-',goals:x.goals,equip:x.equip,intensity:x.intensity},blocks:x.blocks,recVideos:[]};
   renderLesson();renderAssistTasks();
   $('parentNoLesson').classList.add('hidden');$('parentReady').classList.remove('hidden');$('parentOut').innerHTML='';
@@ -1441,9 +1748,17 @@ function go(p){
 function init(){
   ensureSeed();
   buildOpts();
-  // 還原上次課表
+  // 還原上次課表（標準 / 精靈，取較新的顯示）
   const last=read(LS.cur,null);
-  if(last){CURRENT=last;renderLesson();renderAssistTasks();$('parentNoLesson').classList.add('hidden');$('parentReady').classList.remove('hidden');}
+  STD=read(LS.std,null);
+  const stdT=STD?Date.parse(STD.date)||0:0;
+  const curT=last?Date.parse(last.date)||0:0;
+  if(STD&&stdT>=curT){
+    renderStandard();
+  }else if(last){
+    CURRENT=last;renderLesson();renderAssistTasks();
+    $('parentNoLesson').classList.add('hidden');$('parentReady').classList.remove('hidden');
+  }
   go('plan');
 }
 init();
