@@ -318,6 +318,14 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
   <div id="vidList"></div>
 </div>
 
+<!-- ===================== 技術動作速查（招式庫） ===================== -->
+<div class="page hidden" id="page-tech">
+  <div class="sec-h">🦵 技術動作 · 教學重點速查<span class="line"></span></div>
+  <input class="f" id="techSearch" placeholder="🔍 搜尋動作 / 教學重點…（例：旋踢、收腳、平衡）" oninput="renderTech()" style="margin-bottom:10px">
+  <div class="opts" id="techCats" style="margin-bottom:12px"></div>
+  <div id="techList"></div>
+</div>
+
 <!-- ===================== 助教模式 ===================== -->
 <div class="page hidden" id="page-assist">
   <div class="sec-h">🙌 助教模式<span class="line"></span></div>
@@ -384,6 +392,7 @@ input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(-
   <button class="active" data-p="plan" onclick="go('plan')"><span class="ic">⚡</span>備課</button>
   <button data-p="lib" onclick="go('lib')"><span class="ic">📚</span>素材庫</button>
   <button data-p="video" onclick="go('video')"><span class="ic">🎬</span>影片</button>
+  <button data-p="tech" onclick="go('tech')"><span class="ic">🦵</span>招式</button>
   <button data-p="assist" onclick="go('assist')"><span class="ic">🙌</span>助教</button>
   <button data-p="parent" onclick="go('parent')"><span class="ic">💬</span>家長</button>
   <button data-p="hist" onclick="go('hist')"><span class="ic">🗓️</span>歷史</button>
@@ -920,6 +929,199 @@ function stdPrint(){
   <div class="ft">道館教練備課助手 · 列印於 ${new Date().toLocaleString('zh-TW')}</div>
   <script>window.onload=function(){window.print()}<\/script></body></html>`;
   const w=window.open('','_blank');if(!w){toast('請允許彈出視窗');return;}w.document.write(html);w.document.close();
+}
+
+/* ============================================================
+   技術動作 · 教學重點速查（招式庫，內建課綱）
+   ============================================================ */
+const TECH=[
+  {cat:'基本踢技',label:'教學重點',moves:[
+    {m:'前踢',p:'抬膝、腳背或前腳掌踢出、收腳，注意高度與落地位置'},
+    {m:'旋踢',p:'轉髖、抬膝、腳背踢靶'},
+    {m:'下壓踢',p:'抬腿上提、腳跟下壓'},
+    {m:'側踢',p:'膝蓋收緊、腳刀推出、身體控制'},
+    {m:'後踢',p:'回頭看目標、腳跟直線踢出'},
+    {m:'踢靶抬膝',p:'訓練抬膝與距離感'},
+    {m:'單腳連續踢',p:'平衡、控制、節奏'},
+    {m:'左右腳交替踢',p:'協調與換腳能力'},
+    {m:'連續前踢',p:'節奏與穩定'},
+  ]},
+  {cat:'進階＆特技踢',label:'教學重點',moves:[
+    {m:'後旋踢',p:'轉身、看目標、腳跟掃擊'},
+    {m:'轉身後踢',p:'轉身後直線攻擊'},
+    {m:'跳前踢',p:'起跳後前踢，落地平衡'},
+    {m:'跳旋踢',p:'起跳轉髖、空中踢擊'},
+    {m:'跳下壓',p:'起跳後下壓踢'},
+    {m:'連續旋踢',p:'節奏、平衡、換腳'},
+    {m:'旋踢接下壓',p:'組合攻擊'},
+    {m:'前腳旋踢',p:'速度與距離控制'},
+    {m:'滑步旋踢',p:'步伐加攻擊'},
+    {m:'雙飛踢',p:'空中左右腳連續踢'},
+  ]},
+  {cat:'對打應用',label:'應用方向',moves:[
+    {m:'前腳旋踢',p:'搶分、牽制'},
+    {m:'後腳旋踢',p:'主動攻擊'},
+    {m:'近身下壓',p:'破解貼近'},
+    {m:'推踢',p:'控制距離'},
+    {m:'側踢',p:'阻擋與破壞節奏'},
+    {m:'後踢',p:'反擊直線進攻'},
+    {m:'後旋踢',p:'反擊高分技術'},
+    {m:'雙飛',p:'連續得分'},
+    {m:'旋踢接後踢',p:'假動作與反擊'},
+    {m:'前腳假動作接後腳',p:'變化節奏'},
+    {m:'滑步前腳攻擊',p:'搶先手'},
+    {m:'退步反擊旋踢',p:'防守反擊'},
+    {m:'迎擊',p:'抓對方進攻時機'},
+  ]},
+  {cat:'站姿',label:'教學重點',moves:[
+    {m:'準備姿勢',p:'身體穩定、精神集中'},
+    {m:'並排站姿',p:'雙腳平行'},
+    {m:'前行步',p:'基礎移動站姿'},
+    {m:'弓步',p:'前腳彎、後腳直'},
+    {m:'後屈立',p:'重心後坐'},
+    {m:'虎步',p:'重心控制、前腳輕'},
+    {m:'馬步',p:'膝蓋外開、重心下沉'},
+    {m:'交叉步',p:'轉換與平衡'},
+    {m:'鶴立',p:'單腳平衡'},
+  ]},
+  {cat:'防禦技',label:'教學重點',moves:[
+    {m:'下防',p:'防禦下段，手臂路線清楚'},
+    {m:'中內防',p:'手從外往內防禦'},
+    {m:'中外防',p:'手從內往外防禦'},
+    {m:'上防',p:'保護頭部'},
+    {m:'手刀防',p:'手刀路線、肩膀放鬆'},
+    {m:'雙手刀防',p:'兩手配合'},
+    {m:'金剛防',p:'上下肢協調'},
+    {m:'山形防',p:'手臂角度與身體穩定'},
+    {m:'外腕防',p:'前臂外側防禦'},
+    {m:'內腕防',p:'前臂內側防禦'},
+    {m:'掌根防',p:'手掌根部防禦'},
+  ]},
+  {cat:'手技攻擊',label:'教學重點',moves:[
+    {m:'正拳',p:'拳頭路線、腰部發力'},
+    {m:'逆拳',p:'重心與轉腰'},
+    {m:'雙拳攻擊',p:'左右協調'},
+    {m:'手刀打擊',p:'手刀角度'},
+    {m:'背拳',p:'手腕控制'},
+    {m:'肘擊',p:'近距離攻擊'},
+    {m:'貫手',p:'手指方向、路線精準'},
+    {m:'掌根攻擊',p:'推擊與穩定'},
+    {m:'錘拳',p:'手臂下砸路線'},
+  ]},
+  {cat:'品勢',label:'品勢',moves:[
+    {m:'初級',p:'太極一章、太極二章'},
+    {m:'基礎',p:'太極三章、太極四章'},
+    {m:'中級',p:'太極五章、太極六章'},
+    {m:'進階',p:'太極七章、太極八章'},
+    {m:'黑帶',p:'高麗、金剛、太白、平原、十進、地跆、天拳、漢水、一如'},
+  ]},
+  {cat:'滾翻',label:'教學重點',moves:[
+    {m:'前滾翻',p:'收下巴、圓背、雙手撐地'},
+    {m:'後滾翻',p:'收下巴、手撐耳旁、推地'},
+    {m:'側滾',p:'身體縮小、保護頭部'},
+    {m:'肩滾',p:'從肩膀滾過，避免壓頭'},
+    {m:'蛋捲滾',p:'幼幼班入門，抱膝左右滾'},
+    {m:'小烏龜翻身',p:'幼兒身體控制'},
+    {m:'趴姿翻身',p:'核心與方向感'},
+  ]},
+  {cat:'護身倒法',label:'教學重點',moves:[
+    {m:'後倒拍墊',p:'下巴收、手拍墊'},
+    {m:'側倒拍墊',p:'側身保護'},
+    {m:'前倒保護',p:'手臂緩衝，不用臉著地'},
+    {m:'跌倒起身',p:'快速安全站起'},
+    {m:'被推失衡恢復',p:'重心控制'},
+  ]},
+  {cat:'體能動作',label:'教學重點',moves:[
+    {m:'熊爬',p:'肩膀、核心、協調'},
+    {m:'螃蟹走',p:'手腳協調'},
+    {m:'豹爬',p:'全身控制'},
+    {m:'毛毛蟲走',p:'柔軟度、核心'},
+    {m:'平板撐',p:'核心穩定'},
+    {m:'登山者',p:'核心與心肺'},
+    {m:'波比跳',p:'爆發力與心肺'},
+    {m:'鴨子走',p:'下肢肌力'},
+    {m:'青蛙跳',p:'下肢爆發'},
+  ]},
+  {cat:'跳躍踢',label:'教學重點',moves:[
+    {m:'跳前踢',p:'起跳、踢擊、落地'},
+    {m:'跳旋踢',p:'起跳轉髖、空中踢擊'},
+    {m:'跳側踢',p:'空中收膝、腳刀推出'},
+    {m:'跳下壓',p:'空中抬腿、腳跟下壓'},
+    {m:'飛踢',p:'助跑起跳、空中攻擊'},
+    {m:'雙飛踢',p:'空中連續左右腳'},
+    {m:'三飛踢',p:'空中連續三次踢擊'},
+  ]},
+  {cat:'旋轉特技踢',label:'教學重點',moves:[
+    {m:'360旋踢',p:'起跳旋轉、找目標'},
+    {m:'360後踢',p:'轉身後直線踢出'},
+    {m:'360後旋踢',p:'空中旋轉後掃擊'},
+    {m:'540旋踢',p:'騰空旋轉與爆發'},
+    {m:'540後旋踢',p:'空中轉體與腳跟攻擊'},
+    {m:'720踢',p:'高階空中旋轉'},
+    {m:'龍捲風踢',p:'旋轉節奏與身體控制'},
+  ]},
+  {cat:'飛踢破板',label:'教學重點',moves:[
+    {m:'飛越踢靶',p:'助跑、起跳、空中踢靶'},
+    {m:'障礙踢靶',p:'空中距離感'},
+    {m:'跳人踢板',p:'安全距離、起跳點'},
+    {m:'高空下壓',p:'柔軟度與控制'},
+    {m:'連續破板',p:'節奏與準確'},
+    {m:'轉身破板',p:'旋轉與準度'},
+    {m:'多方向踢靶',p:'空間感與反應'},
+  ]},
+  {cat:'表演動作',label:'教學重點',moves:[
+    {m:'高抬腿控制',p:'柔軟度與核心'},
+    {m:'側踢定格',p:'平衡與肌力'},
+    {m:'下壓定格',p:'控制與穩定'},
+    {m:'轉身踢接定格',p:'旋轉後控制'},
+    {m:'騰空踢擊',p:'爆發與空中姿態'},
+    {m:'空翻接踢',p:'高階表演動作'},
+    {m:'跳躍轉體落地',p:'落地穩定'},
+    {m:'音樂節奏組合',p:'動作與節奏配合'},
+  ]},
+];
+let techCat='全部';
+function renderTechCats(){
+  const c=$('techCats'); if(!c)return;
+  const cats=['全部',...TECH.map(t=>t.cat)];
+  c.innerHTML=cats.map(cat=>`<span class="opt ${techCat===cat?'sel':''}" onclick="setTechCat('${cat}')">${cat}</span>`).join('');
+}
+function setTechCat(cat){techCat=cat;renderTech();}
+function renderTech(){
+  renderTechCats();
+  const q=($('techSearch')?.value||'').toLowerCase();
+  const el=$('techList'); let h='';
+  TECH.forEach((t,ci)=>{
+    if(techCat!=='全部'&&techCat!==t.cat)return;
+    let rows='';
+    t.moves.forEach((mv,mi)=>{
+      if(q && !(mv.m+mv.p).toLowerCase().includes(q))return;
+      rows+=`<div class="litem" style="padding:11px;margin-bottom:8px">
+        <h4 style="margin:0 0 2px">${esc(mv.m)}</h4>
+        <p style="margin:0"><b style="color:var(--brand2)">${esc(t.label)}：</b>${esc(mv.p)}</p>
+        <div class="acts"><button onclick="addMoveToStd(${ci},${mi})">＋ 加入課表段落</button></div>
+      </div>`;
+    });
+    if(rows){ h+=`<div class="sec-h" style="font-size:14px;margin:14px 0 8px">${t.cat}<span class="line"></span></div>`+rows; }
+  });
+  el.innerHTML=h||'<div class="empty"><span class="em">🔍</span>查無符合動作</div>';
+}
+let _pendingMove=null;
+function addMoveToStd(ci,mi){
+  const mv=TECH[ci].moves[mi]; if(!mv)return;
+  _pendingMove=mv.m+'（'+mv.p+'）';
+  if(!STD){toast('請先到「備課」產生標準課表');return;}
+  modal(`<button class="close" onclick="closeModal()">×</button>
+    <h3>加入哪一段？</h3>
+    <p class="step-hint" style="margin:0 0 10px">「${esc(mv.m)}」將加入該段的「實際活動內容」。</p>
+    ${STD.segments.map((s,i)=>`<button class="opt" style="display:block;width:100%;text-align:left;margin-bottom:8px;font-size:14px" onclick="doAddMove(${i})">${esc(s.name)}（${s.min}分）</button>`).join('')}
+  `);
+}
+function doAddMove(i){
+  if(!STD||!_pendingMove)return;
+  STD.segments[i].activities.push({id:uid(),text:_pendingMove});
+  stdPersist();closeModal();renderStandard();
+  toast('已加入「'+STD.segments[i].name+'」');
 }
 
 /* ============================================================
@@ -1790,7 +1992,7 @@ function closeModal(){$('modalRoot').innerHTML='';}
 let toastTimer;
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1900);}
 
-const PAGES={plan:'不用再煩惱今天要教什麼',ai:'AI 智能備課教練',lib:'教案素材庫',video:'影片靈感庫',assist:'助教模式',parent:'家長回饋產生器',hist:'歷史課表'};
+const PAGES={plan:'不用再煩惱今天要教什麼',ai:'AI 智能備課教練',lib:'教案素材庫',video:'影片靈感庫',tech:'技術動作教學重點速查',assist:'助教模式',parent:'家長回饋產生器',hist:'歷史課表'};
 function go(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
   $('page-'+p).classList.remove('hidden');
@@ -1798,6 +2000,7 @@ function go(p){
   $('appbarSub').textContent=PAGES[p]||'';
   if(p==='lib')renderLib();
   if(p==='video')renderVideos();
+  if(p==='tech')renderTech();
   if(p==='hist')renderHist();
   if(p==='parent')renderAssistTasks();
   if(p!=='plan')window.scrollTo(0,0);
