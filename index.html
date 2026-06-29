@@ -3,2190 +3,538 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0f172a">
-<title>🥋 道館教練備課助手</title>
+<meta name="theme-color" content="#101828">
+<meta name="application-name" content="CoachPro">
+<meta name="apple-mobile-web-app-title" content="CoachPro">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" href="coachpro-logo.png">
+<link rel="apple-touch-icon" href="coachpro-logo.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>CoachPro</title>
 <style>
 :root{
-  --bg:#0f172a; --bg2:#1e293b; --card:#ffffff; --ink:#0f172a; --sub:#64748b;
-  --line:#e2e8f0; --brand:#e11d48; --brand2:#be123c; --accent:#0ea5e9;
-  --green:#16a34a; --amber:#f59e0b; --soft:#f1f5f9; --radius:16px;
-  --shadow:0 8px 24px rgba(15,23,42,.08);
+  --bg:#f4f6f8; --panel:#ffffff; --ink:#101828; --muted:#667085; --line:#e4e7ec;
+  --brand:#d92d20; --brand2:#b42318; --blue:#0b67d1; --green:#12805c; --amber:#b54708;
+  --soft-red:#fff1f0; --soft-blue:#eef6ff; --soft-green:#ecfdf3; --soft-amber:#fffaeb;
+  --shadow:0 12px 32px rgba(16,24,40,.08); --radius:18px; --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{
-  font-family:-apple-system,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
-  background:var(--soft); color:var(--ink); line-height:1.6;
-  padding-bottom:72px; max-width:560px; margin:0 auto; min-height:100vh;
+  min-height:100vh; max-width:560px; margin:0 auto; padding-bottom:calc(76px + var(--safe-bottom));
+  background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  line-height:1.5;
 }
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
 .hidden{display:none!important}
-/* Header */
 .appbar{
-  position:sticky; top:0; z-index:30;
-  background:linear-gradient(135deg,#0f172a,#1e293b);
-  color:#fff; padding:14px 16px; display:flex; align-items:center; gap:10px;
-  box-shadow:0 2px 12px rgba(0,0,0,.2);
+  position:sticky; top:0; z-index:30; background:rgba(255,255,255,.96); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line); padding:12px 16px; display:flex; align-items:center; gap:10px;
 }
-.appbar h1{font-size:18px; margin:0; font-weight:800; letter-spacing:.5px}
-.appbar .sub{font-size:11px; color:#94a3b8; font-weight:500}
-.appbar .logo{font-size:24px}
-.appbar .gear{margin-left:auto; background:rgba(255,255,255,.12); border:0; color:#fff; font-size:18px; width:38px; height:38px; border-radius:50%; cursor:pointer}
-.appbar .gear:active{transform:scale(.92)}
-.set-row{display:flex; align-items:center; gap:10px; padding:12px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px; cursor:pointer; font-weight:700; font-size:14px}
-.set-row .si{font-size:22px}
-.set-row small{display:block; font-weight:500; color:var(--sub); font-size:11px}
-.stat{display:flex; gap:8px; margin-bottom:12px}
-.stat>div{flex:1; background:var(--soft); border-radius:12px; padding:10px; text-align:center}
-.stat .n{font-size:22px; font-weight:900; color:var(--brand)}
-.stat .l{font-size:10px; color:var(--sub)}
-/* Bottom nav */
-.tabbar{
-  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-  width:100%; max-width:560px; background:#fff; border-top:1px solid var(--line);
-  display:flex; z-index:40; box-shadow:0 -4px 16px rgba(15,23,42,.06);
-}
-.tabbar button{
-  flex:1; border:0; background:none; padding:8px 2px 10px; cursor:pointer;
-  display:flex; flex-direction:column; align-items:center; gap:3px;
-  font-size:10px; color:var(--sub); font-weight:600;
-}
-.tabbar button .ic{font-size:20px; line-height:1}
-.tabbar button.active{color:var(--brand)}
-.tabbar button.active .ic{transform:translateY(-1px)}
-/* Layout */
-.page{padding:16px; animation:fade .25s ease}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.mark{width:42px;height:42px;border-radius:14px;background:#101828;display:grid;place-items:center;overflow:hidden;box-shadow:0 8px 18px rgba(16,24,40,.14);flex:none}
+.mark img{width:100%;height:100%;object-fit:cover;display:block}
+.appbar h1{font-size:17px;line-height:1.1;margin:0;font-weight:900;letter-spacing:0}
+.appbar p{font-size:11px;color:var(--muted);margin:2px 0 0}
+.gear{margin-left:auto;width:42px;height:42px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font-size:18px}
+.page{padding:16px 16px 24px; animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .hero{
-  background:linear-gradient(135deg,#e11d48,#be123c);
-  color:#fff; border-radius:var(--radius); padding:22px 20px; margin-bottom:16px;
-  box-shadow:var(--shadow);
+  background:linear-gradient(140deg,#101828,#24324a 58%,#b42318); color:#fff; border-radius:0 0 22px 22px;
+  padding:18px 16px 22px; margin:-16px -16px 16px;
 }
-.hero h2{margin:0 0 6px; font-size:22px; font-weight:900}
-.hero p{margin:0; font-size:13px; opacity:.92}
-.hero .chips{margin-top:14px; display:flex; flex-wrap:wrap; gap:6px}
-.hero .chips span{background:rgba(255,255,255,.18); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600}
-.card{background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:14px}
-.step-title{font-size:14px; font-weight:800; margin:0 0 4px; display:flex; align-items:center; gap:8px}
-.step-num{background:var(--brand); color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:800}
-.step-hint{font-size:11px; color:var(--sub); margin:0 0 12px}
-/* Option pills */
-.opts{display:flex; flex-wrap:wrap; gap:8px}
-.opt{
-  border:1.5px solid var(--line); background:#fff; border-radius:12px;
-  padding:9px 13px; font-size:13px; cursor:pointer; user-select:none;
-  font-weight:600; color:#334155; transition:.15s;
+.hero h2{margin:0 0 6px;font-size:24px;line-height:1.18;font-weight:950;letter-spacing:0}
+.hero p{margin:0;color:#d0d5dd;font-size:13px}
+.status-row{display:flex;gap:8px;margin-top:14px}
+.status-chip{flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:8px}
+.status-chip b{display:block;font-size:16px;color:#fff;line-height:1}
+.status-chip span{font-size:10px;color:#d0d5dd}
+.entry-grid{display:grid;gap:12px}
+.entry-card{
+  min-height:136px; width:100%; text-align:left; border:1px solid var(--line); background:var(--panel);
+  border-radius:20px; padding:18px; box-shadow:var(--shadow); display:flex; gap:14px; align-items:flex-start;
 }
-.opt:active{transform:scale(.96)}
-.opt.sel{background:var(--brand); border-color:var(--brand); color:#fff; box-shadow:0 4px 12px rgba(225,29,72,.3)}
-.opt.sel.alt{background:var(--accent); border-color:var(--accent); box-shadow:0 4px 12px rgba(14,165,233,.3)}
-a.opt{text-decoration:none}
-a.opt.alt{background:#fff; border-color:var(--accent); color:var(--accent)}
-/* Buttons */
+.entry-card.primary{border-color:#fecdca;background:linear-gradient(180deg,#fff,#fff7f6)}
+.entry-icon{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:#101828;color:#fff;font-size:24px;flex:none}
+.entry-card.primary .entry-icon{background:var(--brand)}
+.entry-card.ai .entry-icon{background:var(--blue)}
+.entry-card.hist .entry-icon{background:var(--green)}
+.entry-card h3{margin:0 0 6px;font-size:19px;font-weight:950;letter-spacing:0}
+.entry-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+.entry-card .arrow{margin-left:auto;color:#98a2b3;font-size:22px}
+.section-title{display:flex;align-items:center;gap:8px;margin:18px 0 10px;font-size:16px;font-weight:950}
+.section-title:after{content:"";height:1px;background:var(--line);flex:1}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+.mini-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.muted{color:var(--muted);font-size:12px}
+.field{width:100%;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:13px 14px;color:var(--ink);font-size:15px}
+.field:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(11,103,209,.1)}
+textarea.field{min-height:112px;resize:vertical}
 .btn{
-  width:100%; border:0; border-radius:14px; padding:15px; font-size:16px; font-weight:800;
-  background:linear-gradient(135deg,#e11d48,#be123c); color:#fff; cursor:pointer;
-  box-shadow:0 8px 20px rgba(225,29,72,.35); letter-spacing:1px;
+  min-height:52px; width:100%; border:0; border-radius:16px; padding:13px 15px;
+  background:var(--brand); color:#fff; font-weight:900; font-size:15px; box-shadow:0 10px 22px rgba(217,45,32,.22);
 }
-.btn:active{transform:translateY(1px)}
-.btn.sec{background:#fff; color:var(--brand); border:1.5px solid var(--brand); box-shadow:none}
-.btn.dark{background:linear-gradient(135deg,#0f172a,#334155); box-shadow:0 8px 20px rgba(15,23,42,.3)}
-.btn.sm{padding:10px; font-size:13px; border-radius:10px; box-shadow:none; letter-spacing:0}
-.btn-row{display:flex; gap:8px}
-.btn-row .btn{margin:0}
-/* Forms */
-label.fl{display:block; font-size:12px; font-weight:700; color:#475569; margin:10px 0 4px}
-input.f, textarea.f, select.f{
-  width:100%; border:1.5px solid var(--line); border-radius:10px; padding:10px;
-  font-size:14px; font-family:inherit; background:#fff; color:var(--ink);
+.btn.dark{background:#101828;box-shadow:0 10px 22px rgba(16,24,40,.18)}
+.btn.blue{background:var(--blue);box-shadow:0 10px 22px rgba(11,103,209,.18)}
+.btn.green{background:var(--green);box-shadow:0 10px 22px rgba(18,128,92,.18)}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.light{background:#f2f4f7;color:#344054;box-shadow:none}
+.btn.sm{min-height:42px;border-radius:13px;padding:9px 11px;font-size:13px}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn-grid{display:grid;gap:8px}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice{
+  min-height:52px;border:1.5px solid var(--line);border-radius:15px;background:#fff;color:#344054;
+  padding:11px 10px;font-weight:850;text-align:center;
 }
-textarea.f{resize:vertical; min-height:60px}
-input.f:focus, textarea.f:focus, select.f:focus{outline:none; border-color:var(--brand)}
-/* Lesson output */
-.lesson-head{
-  background:linear-gradient(135deg,#0f172a,#334155); color:#fff;
-  border-radius:var(--radius); padding:18px; margin-bottom:14px; box-shadow:var(--shadow);
+.choice.selected{background:#101828;color:#fff;border-color:#101828;box-shadow:0 8px 18px rgba(16,24,40,.16)}
+.choice.warn{background:var(--soft-amber);border-color:#fedf89;color:#93370d}
+.step-shell{padding-bottom:96px}
+.step-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.step-head h2{margin:0;font-size:22px;line-height:1.2;font-weight:950}
+.progress-pill{background:#101828;color:#fff;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:900;white-space:nowrap}
+.bar{height:8px;background:#e4e7ec;border-radius:999px;overflow:hidden;margin-bottom:14px}
+.bar span{display:block;height:100%;background:var(--brand);border-radius:999px;transition:.18s;width:0}
+.sticky-actions{
+  position:fixed;left:50%;bottom:calc(76px + var(--safe-bottom));transform:translateX(-50%);width:100%;max-width:560px;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:10px 16px;z-index:35;
 }
-.lesson-head h2{margin:0 0 4px; font-size:18px; font-weight:900}
-.lesson-head .meta{font-size:12px; color:#cbd5e1; display:flex; flex-wrap:wrap; gap:6px 10px; margin-top:8px}
-.lesson-head .meta b{color:#fff}
-.block{
-  background:#fff; border-radius:14px; padding:0; margin-bottom:12px; overflow:hidden;
-  box-shadow:var(--shadow); border-left:5px solid var(--brand);
+.sticky-actions .btn-row{grid-template-columns:112px 1fr}
+.tabbar{
+  position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:560px;
+  background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:40;
+  padding-bottom:var(--safe-bottom);box-shadow:0 -8px 24px rgba(16,24,40,.08);
 }
-.block .bhead{padding:13px 15px; cursor:pointer; display:flex; align-items:center; gap:10px}
-.block .time{background:var(--brand); color:#fff; font-size:11px; font-weight:800; padding:3px 8px; border-radius:8px; white-space:nowrap}
-.block .bname{font-weight:800; font-size:15px; flex:1}
-.block .arrow{color:var(--sub); transition:.2s; font-size:13px}
-.block.open .arrow{transform:rotate(90deg)}
-.block .body{padding:0 15px 15px; display:none}
-.block.open .body{display:block}
-.row{margin:9px 0; font-size:13px}
-.row .k{font-weight:800; color:var(--brand2); font-size:12px; display:block; margin-bottom:2px}
-.row.cmd{background:#fef2f2; border-radius:8px; padding:8px 10px}
-.row.assist{background:#eff6ff; border-radius:8px; padding:8px 10px}
-.row.safe{background:#fffbeb; border-radius:8px; padding:8px 10px}
-.row.parent{background:#f0fdf4; border-radius:8px; padding:8px 10px}
-.row .eq{display:inline-block; background:var(--soft); border-radius:6px; padding:1px 7px; font-size:11px; margin:2px 3px 0 0; font-weight:600}
-/* List items */
-.litem{background:#fff; border-radius:12px; padding:13px; margin-bottom:10px; box-shadow:var(--shadow)}
-.litem h4{margin:0 0 4px; font-size:15px; font-weight:800}
-.litem .tags{display:flex; flex-wrap:wrap; gap:4px; margin:6px 0}
-.litem .tag{background:var(--soft); color:#475569; font-size:10px; padding:2px 7px; border-radius:6px; font-weight:600}
-.litem .tag.g{background:#dcfce7; color:#15803d}
-.litem .tag.b{background:#dbeafe; color:#1d4ed8}
-.litem p{margin:4px 0; font-size:12px; color:#475569}
-.litem .acts{display:flex; gap:6px; margin-top:8px}
-.litem .acts button{flex:1; border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px; font-size:12px; font-weight:700; cursor:pointer; color:#475569}
-.litem .acts button.del{color:var(--brand); border-color:#fecdd3}
-/* Assistant cards */
-.acard{border-radius:14px; padding:15px; margin-bottom:12px; color:#fff; box-shadow:var(--shadow)}
-.acard h3{margin:0 0 6px; font-size:15px; font-weight:800}
-.acard p{margin:4px 0; font-size:13px; opacity:.95}
-.acard.warm{background:linear-gradient(135deg,#16a34a,#15803d)}
-.acard.body{background:linear-gradient(135deg,#0ea5e9,#0369a1)}
-.acard.cheer{background:linear-gradient(135deg,#f59e0b,#d97706)}
-.acard.safe{background:linear-gradient(135deg,#ef4444,#b91c1c)}
-.philo{background:#0f172a; color:#fff; border-radius:14px; padding:16px; margin-bottom:12px}
-.philo b{color:#fbbf24}
-.philo .big{font-size:17px; font-weight:900; margin:8px 0; line-height:1.5}
-/* Section title */
-.sec-h{font-size:16px; font-weight:900; margin:4px 0 12px; display:flex; align-items:center; gap:8px}
-.sec-h .line{flex:1; height:2px; background:var(--line); border-radius:2px}
-.empty{text-align:center; color:var(--sub); padding:30px 10px; font-size:13px}
-.empty .em{font-size:40px; display:block; margin-bottom:8px}
-/* Modal */
-.modal-bg{position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:60; display:flex; align-items:flex-end; justify-content:center}
-.modal{background:#fff; width:100%; max-width:560px; border-radius:20px 20px 0 0; padding:18px; max-height:90vh; overflow-y:auto; animation:slideup .25s}
-@keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
-.modal h3{margin:0 0 12px; font-size:17px; font-weight:800}
-.modal .close{position:absolute; right:18px; top:14px; font-size:22px; color:var(--sub); cursor:pointer; background:none; border:0}
-.toast{
-  position:fixed; bottom:84px; left:50%; transform:translateX(-50%);
-  background:#0f172a; color:#fff; padding:11px 20px; border-radius:30px; font-size:13px;
-  font-weight:600; z-index:80; box-shadow:0 8px 24px rgba(0,0,0,.3); opacity:0; transition:.3s; pointer-events:none;
+.tabbar button{min-height:64px;border:0;background:#fff;color:#667085;font-size:12px;font-weight:850;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.tabbar button span{font-size:22px;line-height:1}
+.tabbar button.active{color:var(--brand)}
+.alert{border:1px solid #fedf89;background:var(--soft-amber);border-radius:16px;padding:13px;margin-bottom:12px;color:#7a2e0e}
+.alert b{display:block;margin-bottom:4px}
+.result-top{background:#101828;color:#fff;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.result-top h2{margin:0 0 8px;font-size:20px;font-weight:950}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.metric{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px}
+.metric span{display:block;font-size:10px;color:#d0d5dd}.metric b{font-size:14px;color:#fff}
+.score-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#ecfdf3;color:#067647;padding:7px 10px;font-size:12px;font-weight:950}
+.lesson-card summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer}
+.lesson-card summary::-webkit-details-marker{display:none}
+.time-badge{background:var(--soft-red);color:var(--brand2);border-radius:999px;padding:5px 9px;font-size:12px;font-weight:950;white-space:nowrap}
+.lesson-card h3{margin:0;font-size:16px;font-weight:950;flex:1}
+.chev{color:#98a2b3}
+details[open] .chev{transform:rotate(90deg)}
+.detail-grid{display:grid;gap:8px;margin-top:12px}
+.detail{border-radius:13px;padding:10px 11px;background:#f8fafc;font-size:13px;color:#344054}
+.detail b{display:block;color:#101828;font-size:12px;margin-bottom:2px}
+.detail.assist{background:var(--soft-blue)}.detail.safe{background:var(--soft-amber)}.detail.alt{background:var(--soft-green)}
+.action-dock{
+  position:sticky;bottom:calc(76px + var(--safe-bottom));z-index:20;background:rgba(244,246,248,.94);
+  backdrop-filter:blur(12px);padding:8px 0;margin:10px 0;
 }
-.toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
-.vid-link{display:inline-flex; align-items:center; gap:5px; color:var(--accent); font-size:12px; font-weight:700; text-decoration:none; margin-top:4px}
-.vthumb{position:relative; border-radius:10px; overflow:hidden; margin-bottom:8px; background:#0f172a; aspect-ratio:16/9}
-.vthumb img{width:100%; height:100%; object-fit:cover; display:block}
-.vthumb .play{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:34px; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.6); background:rgba(0,0,0,.12)}
-.feedback-box{background:#f0fdf4; border:1.5px dashed #86efac; border-radius:12px; padding:14px; white-space:pre-wrap; font-size:13px; line-height:1.7; color:#14532d}
-.histcard{background:#fff; border-radius:12px; padding:13px; margin-bottom:10px; box-shadow:var(--shadow); display:flex; align-items:center; gap:12px}
-.histcard .d{background:var(--soft); border-radius:10px; padding:8px 10px; text-align:center; min-width:50px}
-.histcard .d .dd{font-size:18px; font-weight:900; line-height:1}
-.histcard .d .mm{font-size:10px; color:var(--sub)}
-.histcard .info{flex:1; min-width:0}
-.histcard .info h4{margin:0; font-size:14px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.histcard .info p{margin:2px 0 0; font-size:11px; color:var(--sub)}
-.histcard .x{color:var(--brand); cursor:pointer; font-size:18px; background:none; border:0}
-.seg{display:flex; background:var(--soft); border-radius:10px; padding:3px; margin-bottom:12px}
-.seg button{flex:1; border:0; background:none; padding:7px; border-radius:8px; font-size:12px; font-weight:700; color:var(--sub); cursor:pointer}
-.seg button.on{background:#fff; color:var(--brand); box-shadow:0 1px 4px rgba(0,0,0,.1)}
-.ai-hint{background:#eff6ff; border-radius:10px; padding:10px 12px; font-size:12px; color:#1d4ed8; margin-bottom:10px}
-.ai-hint b{display:block; margin-bottom:3px}
-.fab{position:fixed; bottom:84px; right:calc(50% - 280px + 16px); background:var(--brand); color:#fff; width:54px; height:54px; border-radius:50%; border:0; font-size:26px; box-shadow:0 8px 20px rgba(225,29,72,.4); cursor:pointer; z-index:35}
-@media(max-width:592px){.fab{right:16px}}
-/* 標準課表段落編輯器 */
-.seg-block{background:#fff;border-radius:14px;margin-bottom:12px;box-shadow:var(--shadow);border-left:5px solid var(--brand);overflow:hidden}
-.seg-head{padding:11px 13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.seg-head .tline{background:var(--brand);color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:7px;white-space:nowrap}
-.seg-head .snm{font-weight:800;font-size:15px;flex:1;min-width:90px}
-.seg-head .mins{width:54px;border:1.5px solid var(--line);border-radius:8px;padding:5px;font-size:13px;text-align:center;font-weight:700}
-.seg-tools{display:flex;gap:4px;padding:0 13px 10px;flex-wrap:wrap}
-.seg-tools button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700;color:#475569;cursor:pointer}
-.seg-tools button.p{color:var(--brand);border-color:#fecdd3}
-.seg-body{padding:0 13px 13px}
-.seg-field{margin:9px 0;font-size:13px}
-.seg-field .k{font-weight:800;font-size:12px;color:var(--brand2);display:block;margin-bottom:3px}
-.seg-field.warm{background:#f0fdf4;border-radius:8px;padding:8px 10px}
-.seg-field.coach{background:#fef2f2;border-radius:8px;padding:8px 10px}
-.seg-field.assist{background:#eff6ff;border-radius:8px;padding:8px 10px}
-.seg-field.safe{background:#fffbeb;border-radius:8px;padding:8px 10px}
-.seg-field.parent{background:#f5f3ff;border-radius:8px;padding:8px 10px}
-.seg-field ul{margin:4px 0 0;padding-left:18px}
-.seg-field li{margin:3px 0}
-.act-edit{display:flex;gap:6px;margin:5px 0}
-.act-edit input{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:7px;font-size:13px}
-.act-edit button{border:1px solid #fecdd3;background:#fff;color:var(--brand);border-radius:8px;padding:0 10px;font-weight:800;cursor:pointer}
+.copy-row{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:start}
+.copy-row>div{min-width:0}
+.copy-box{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;white-space:pre-wrap;font-size:13px;color:#344054;max-height:180px;overflow:auto}
+.list-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 8px 18px rgba(16,24,40,.05)}
+.list-card h3{margin:0 0 4px;font-size:16px;font-weight:950}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.tag{background:#f2f4f7;color:#475467;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:850}
+.tag.red{background:var(--soft-red);color:var(--brand2)}.tag.blue{background:var(--soft-blue);color:#0754a6}.tag.green{background:var(--soft-green);color:#067647}
+.empty{text-align:center;color:var(--muted);padding:34px 12px;font-size:13px}
+.empty b{display:block;color:#344054;font-size:16px;margin-bottom:4px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#eaecf0;border-radius:15px;padding:4px;margin-bottom:12px}
+.seg button{border:0;border-radius:12px;background:transparent;padding:9px 5px;font-size:12px;font-weight:900;color:#667085}
+.seg button.on{background:#fff;color:#101828;box-shadow:0 2px 8px rgba(16,24,40,.08)}
+.toast{position:fixed;left:50%;bottom:calc(150px + var(--safe-bottom));transform:translateX(-50%) translateY(8px);z-index:80;background:#101828;color:#fff;border-radius:999px;padding:11px 18px;font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.18s}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.modal-bg{position:fixed;inset:0;background:rgba(16,24,40,.58);z-index:70;display:flex;align-items:flex-end;justify-content:center}
+.modal{width:100%;max-width:560px;max-height:90vh;overflow:auto;background:#fff;border-radius:22px 22px 0 0;padding:18px}
+.modal h2{margin:0 0 12px;font-size:20px;font-weight:950}
+.modal label{display:block;margin:10px 0 5px;font-size:12px;font-weight:900;color:#475467}
+@media(min-width:520px){.choice-grid{grid-template-columns:repeat(3,1fr)}.entry-grid{grid-template-columns:1fr}.btn-grid.two{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-
-<div class="appbar">
-  <span class="logo">🥋</span>
+<header class="appbar">
+  <div class="mark"><img src="coachpro-logo.png" alt="CoachPro logo"></div>
   <div>
-    <h1>道館教練備課助手</h1>
-    <div class="sub" id="appbarSub">不用再煩惱今天要教什麼</div>
+    <h1>CoachPro</h1>
+    <p id="appSub">手機快速備課 · 課後可直接複製</p>
   </div>
-  <button class="gear" onclick="openSettings()" aria-label="設定">⚙️</button>
-</div>
+  <button class="gear" onclick="openSettings()" aria-label="設定">⚙</button>
+</header>
 
-<!-- ===================== 備課產生器 ===================== -->
-<div class="page" id="page-plan">
-  <div id="planWizard">
-    <div class="hero">
-      <h2>不用再煩惱今天要教什麼</h2>
-      <p>只要點選班級、目標與器材，系統立即產生完整課表。</p>
-      <div class="chips">
-        <span>✅ 課程流程</span><span>✅ 器材玩法</span><span>✅ 助教提示</span>
-        <span>✅ 教學重點</span><span>✅ 家長回饋</span><span>✅ 影片靈感</span>
-      </div>
-    </div>
+<main>
+  <section class="page" id="page-plan"></section>
+  <section class="page hidden" id="page-material"></section>
+  <section class="page hidden" id="page-after"></section>
+  <section class="page hidden" id="page-records"></section>
+</main>
 
-    <!-- 標準課表模板（核心入口） -->
-    <div class="card" style="border:2px solid var(--brand)">
-      <div class="step-title" style="font-size:16px">🥋 標準課表模板</div>
-      <p class="step-hint" style="margin-bottom:10px">只要選課程總時間，系統依「做操暖身 → 體能遊戲 → 基本動作 → 踢靶應用」自動產生一堂可直接執行的課，每段都能修改。</p>
-      <div class="opts" id="optStdTime"></div>
-      <div style="margin-top:10px" id="stdCustomWrap" class="hidden">
-        <label class="fl" style="margin-top:0">自訂總時間（分鐘）</label>
-        <input class="f" id="stdCustomMin" type="number" min="20" max="180" placeholder="例：75" value="75">
-      </div>
-      <div style="height:12px"></div>
-      <button class="btn" onclick="generateStandard()">⚡ 產生標準課表</button>
-    </div>
-
-    <div class="sec-h" style="margin:18px 0 12px">或，進階自訂備課<span class="line"></span></div>
-
-    <div class="card">
-      <div class="step-title"><span class="step-num">1</span>選擇班級</div>
-      <div class="opts" id="optClass"></div>
-    </div>
-    <div class="card">
-      <div class="step-title"><span class="step-num">2</span>選擇年齡</div>
-      <div class="opts" id="optAge"></div>
-    </div>
-    <div class="card">
-      <div class="step-title"><span class="step-num">3</span>選擇人數</div>
-      <div class="opts" id="optSize"></div>
-    </div>
-    <div class="card">
-      <div class="step-title"><span class="step-num">4</span>選擇課程目標</div>
-      <p class="step-hint">可多選</p>
-      <div class="opts" id="optGoals"></div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <input class="f" id="newGoalInput" placeholder="自訂目標，例：衝刺跑、Tabata、肌力訓練…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addGoal();}">
-        <button class="btn sec sm" type="button" onclick="addGoal()">＋ 新增</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="step-title"><span class="step-num">5</span>勾選今日器材</div>
-      <p class="step-hint">可多選</p>
-      <div class="opts" id="optEquip"></div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <input class="f" id="newEquipInput" placeholder="自訂器材，例：戰繩、藥球…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addEquip();}">
-        <button class="btn sec sm" type="button" onclick="addEquip()">＋ 新增</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="step-title"><span class="step-num">6</span>課程強度</div>
-      <div class="opts" id="optIntensity"></div>
-    </div>
-
-    <button class="btn" onclick="generateLesson()">⚡ 產生今日課表</button>
-    <div style="height:8px"></div>
-    <button class="btn dark" onclick="go('ai')">🤖 改用 AI 智能備課（描述今天狀況）</button>
-  </div>
-
-  <div id="planResult" class="hidden"></div>
-</div>
-
-<!-- ===================== AI 備課 ===================== -->
-<div class="page hidden" id="page-ai">
-  <div class="hero" style="background:linear-gradient(135deg,#0f172a,#334155)">
-    <h2>🤖 AI 智能備課教練</h2>
-    <p>用講的就好。描述今天的狀況，系統幫你排出最適合的課表。</p>
-  </div>
-  <div class="ai-hint">
-    <b>可以這樣描述：</b>
-    今天下雨、人數很多、場地較小、幼兒精神很好、只有踢靶和角錐，目標想練專注力。
-  </div>
-  <div class="card">
-    <label class="fl">今天的狀況描述</label>
-    <textarea class="f" id="aiInput" rows="4" placeholder="例：今天下雨，人很多，場地小，幼兒班精神很好，只有踢靶跟角錐…"></textarea>
-    <div style="height:10px"></div>
-    <button class="btn dark" onclick="aiGenerate()">✨ AI 產生最適課表</button>
-  </div>
-  <div id="aiResult"></div>
-</div>
-
-<!-- ===================== 素材庫 ===================== -->
-<div class="page hidden" id="page-lib">
-  <div class="sec-h">📚 教案素材庫<span class="line"></span></div>
-  <input class="f" id="libSearch" placeholder="🔍 搜尋課程名稱 / 器材 / 目標…" oninput="renderLib()" style="margin-bottom:12px">
-  <button class="btn sec sm" onclick="openMaterialModal()" style="margin-bottom:14px">＋ 新增教案素材</button>
-  <div id="libList"></div>
-</div>
-
-<!-- ===================== 影片靈感庫 ===================== -->
-<div class="page hidden" id="page-video">
-  <div class="sec-h">🎬 影片靈感庫<span class="line"></span></div>
-  <input class="f" id="vidSearch" placeholder="🔍 搜尋影片標題 / 器材 / 目標…" oninput="renderVideos()" style="margin-bottom:12px">
-  <button class="btn sec sm" onclick="openVideoModal()" style="margin-bottom:14px">＋ 新增教學影片</button>
-  <div id="vidList"></div>
-</div>
-
-<!-- ===================== 技術動作速查（招式庫） ===================== -->
-<div class="page hidden" id="page-tech">
-  <div class="sec-h">🦵 技術動作 · 教學重點速查<span class="line"></span></div>
-  <input class="f" id="techSearch" placeholder="🔍 搜尋動作 / 教學重點…（例：旋踢、收腳、平衡）" oninput="renderTech()" style="margin-bottom:10px">
-  <div class="opts" id="techCats" style="margin-bottom:12px"></div>
-  <div id="techList"></div>
-</div>
-
-<!-- ===================== 助教模式 ===================== -->
-<div class="page hidden" id="page-assist">
-  <div class="sec-h">🙌 助教模式<span class="line"></span></div>
-  <div class="philo">
-    <b>幼兒班教學重點不是技術</b>
-    <div class="big">而是：安全感 · 參與感 · 成就感</div>
-    孩子會先喜歡教練，才願意學習教練教的東西。
-  </div>
-  <div class="acard warm">
-    <h3>🌱 教學溫度提醒</h3>
-    <p>蹲下來和孩子平視說話，先叫出名字再給指令。</p>
-    <p>哭鬧的孩子先安撫情緒、不強迫動作，給一個小任務轉移注意。</p>
-  </div>
-  <div class="acard body">
-    <h3>🙌 肢體語言提醒</h3>
-    <p>面對孩子、保持微笑、開放手勢；示範時放慢、動作放大。</p>
-    <p>站位站在隊伍側後方，能看到每個孩子又不擋教練視線。</p>
-  </div>
-  <div class="acard cheer">
-    <h3>🗣️ 鼓勵口令</h3>
-    <p>「哇～你剛剛站得超穩！」「再一次就成功了，我相信你！」</p>
-    <p>「你今天比上次更厲害了！」「好棒，給自己拍拍手！」</p>
-  </div>
-  <div class="acard safe">
-    <h3>⚠️ 安全提醒</h3>
-    <p>器材擺放離牆與柱子；踢擊類保持間距一個手臂以上。</p>
-    <p>不排隊的孩子用「請站到角錐後面當隊長」正向引導。</p>
-  </div>
-  <div class="card">
-    <div class="step-title">📋 今日課表助教任務</div>
-    <p class="step-hint">產生課表後，這裡會列出每段的助教任務</p>
-    <div id="assistTasks"><div class="empty"><span class="em">🗒️</span>尚未產生今日課表</div></div>
-  </div>
-</div>
-
-<!-- ===================== 家長回饋 ===================== -->
-<div class="page hidden" id="page-parent">
-  <div class="sec-h">💬 家長回饋產生器<span class="line"></span></div>
-  <div class="card">
-    <p class="step-hint" style="margin-top:0">課程結束後按一下，自動生成適合 LINE 群組發布的內容。</p>
-    <div id="parentNoLesson" class="empty"><span class="em">📝</span>請先產生今日課表，再回來產生家長回饋</div>
-    <div id="parentReady" class="hidden">
-      <button class="btn" onclick="genParent()">✨ 產生家長回饋</button>
-      <div style="height:12px"></div>
-      <div id="parentOut"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ===================== 歷史課表 ===================== -->
-<div class="page hidden" id="page-hist">
-  <div class="sec-h">🗓️ 歷史課表<span class="line"></span></div>
-  <div class="seg" id="histSeg">
-    <button class="on" data-f="today" onclick="setHistFilter('today')">今天</button>
-    <button data-f="week" onclick="setHistFilter('week')">本週</button>
-    <button data-f="month" onclick="setHistFilter('month')">本月</button>
-    <button data-f="all" onclick="setHistFilter('all')">全部</button>
-  </div>
-  <div id="histList"></div>
-</div>
-
-<!-- Bottom Nav -->
-<div class="tabbar">
-  <button class="active" data-p="plan" onclick="go('plan')"><span class="ic">⚡</span>備課</button>
-  <button data-p="lib" onclick="go('lib')"><span class="ic">📚</span>素材庫</button>
-  <button data-p="video" onclick="go('video')"><span class="ic">🎬</span>影片</button>
-  <button data-p="tech" onclick="go('tech')"><span class="ic">🦵</span>招式</button>
-  <button data-p="assist" onclick="go('assist')"><span class="ic">🙌</span>助教</button>
-  <button data-p="parent" onclick="go('parent')"><span class="ic">💬</span>家長</button>
-  <button data-p="hist" onclick="go('hist')"><span class="ic">🗓️</span>歷史</button>
-</div>
+<nav class="tabbar" aria-label="主要選單">
+  <button class="active" data-page="plan" onclick="go('plan')"><span>⚡</span>備課</button>
+  <button data-page="material" onclick="go('material')"><span>📚</span>素材</button>
+  <button data-page="after" onclick="go('after')"><span>💬</span>課後</button>
+  <button data-page="records" onclick="go('records')"><span>🗂</span>紀錄</button>
+</nav>
 
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-/* ============================================================
-   道館教練備課助手  —  單檔 MVP
-   資料：localStorage  |  4 個 key：
-   clp_materials / clp_videos / clp_history / clp_current
-   ============================================================ */
-const LS = {
-  mat:'clp_materials', vid:'clp_videos', hist:'clp_history', cur:'clp_current', seed:'clp_seeded_v1', ytkey:'clp_yt_key',
-  std:'clp_std', tpl:'clp_templates', lang:'clp_lang', equip:'clp_equip', goals:'clp_goals', syncUrl:'clp_sync_url'
-};
-const $ = id => document.getElementById(id);
-const read = (k,d)=>{ try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d} };
-const write = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const uid = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const LS={materials:'clp_materials',videos:'clp_videos',history:'clp_history',current:'clp_current',seed:'coachpro_seed_v2'};
+const $=id=>document.getElementById(id);
+const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+const write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const todayISO=()=>new Date().toISOString();
+const esc=s=>(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
-/* ---------- 選項定義 ---------- */
-const CLASSES = ['幼幼班','幼兒班','基礎班','品勢班','選手班','黑帶班','健身班','暑期班'];
-const AGES = ['3-4歲','5-6歲','國小低年級','國小中年級','國小高年級','國中','成人'];
-const SIZES = ['1-5人','6-10人','11-15人','16人以上'];
-const GOALS_BASE = ['專注力','平衡感','協調性','反應力','體能','爆發力','核心穩定','基本動作','前踢','下壓','側踢','品勢','對打步伐','禮貌紀律','團隊合作','晉級考試準備'];
-let GOALS = GOALS_BASE.concat(read(LS.goals, []));   // 內建 + 教練自訂
-function refreshGoals(){ GOALS = GOALS_BASE.concat(read(LS.goals, [])); }
-/* 課程目標：自訂可新增/刪除版 */
-function renderGoals(){
-  const c=$('optGoals'); if(!c) return; c.innerHTML='';
-  const custom=read(LS.goals,[]);
-  GOALS.forEach(v=>{
-    const d=document.createElement('div'); d.className='opt'; d.textContent=v;
-    if(sel.goals.includes(v)){ d.classList.add('sel'); }
-    d.onclick=()=>{
-      const i=sel.goals.indexOf(v);
-      if(i>=0){ sel.goals.splice(i,1); d.classList.remove('sel'); }
-      else{ sel.goals.push(v); d.classList.add('sel'); }
-    };
-    if(custom.includes(v)){
-      const x=document.createElement('span'); x.textContent='✕'; x.title='刪除自訂目標';
-      x.style.cssText='margin-left:6px;color:#d74444;font-weight:800;cursor:pointer';
-      x.onclick=(e)=>{
-        e.stopPropagation();
-        if(!confirm('刪除自訂目標「'+v+'」？')) return;
-        write(LS.goals, read(LS.goals,[]).filter(z=>z!==v));
-        const si=sel.goals.indexOf(v); if(si>=0) sel.goals.splice(si,1);
-        refreshGoals(); renderGoals();
-      };
-      d.appendChild(x);
-    }
-    c.appendChild(d);
-  });
-}
-function addGoal(){
-  const inp=$('newGoalInput'); if(!inp) return;
-  const name=(inp.value||'').trim();
-  if(!name) return;
-  if(GOALS.includes(name)){ alert('「'+name+'」已經在清單裡了。'); inp.value=''; return; }
-  const cur=read(LS.goals,[]); cur.push(name); write(LS.goals,cur);
-  refreshGoals();
-  if(!sel.goals.includes(name)) sel.goals.push(name);
-  inp.value='';
-  renderGoals();
-}
-const EQUIP_BASE = ['氣墊','敏捷圈','角錐','欄架','欄杆','軟墊','滾筒','反應燈','踢靶','跳繩機'];
-let EQUIP = EQUIP_BASE.concat(read(LS.equip, []));   // 內建 + 教練自訂（localStorage）
-function refreshEquip(){ EQUIP = EQUIP_BASE.concat(read(LS.equip, [])); }
-/* 今日器材：自訂可新增/刪除版（取代固定 multi） */
-function renderEquip(){
-  const c=$('optEquip'); if(!c) return; c.innerHTML='';
-  const custom=read(LS.equip,[]);
-  EQUIP.forEach(v=>{
-    const d=document.createElement('div'); d.className='opt altmark'; d.textContent=v;
-    if(sel.equip.includes(v)){ d.classList.add('sel','alt'); }
-    d.onclick=()=>{
-      const i=sel.equip.indexOf(v);
-      if(i>=0){ sel.equip.splice(i,1); d.classList.remove('sel','alt'); }
-      else{ sel.equip.push(v); d.classList.add('sel','alt'); }
-    };
-    if(custom.includes(v)){
-      const x=document.createElement('span'); x.textContent='✕'; x.title='刪除自訂器材';
-      x.style.cssText='margin-left:6px;color:#d74444;font-weight:800;cursor:pointer';
-      x.onclick=(e)=>{
-        e.stopPropagation();
-        if(!confirm('刪除自訂器材「'+v+'」？')) return;
-        write(LS.equip, read(LS.equip,[]).filter(z=>z!==v));
-        const si=sel.equip.indexOf(v); if(si>=0) sel.equip.splice(si,1);
-        refreshEquip(); renderEquip();
-      };
-      d.appendChild(x);
-    }
-    c.appendChild(d);
-  });
-}
-function addEquip(){
-  const inp=$('newEquipInput'); if(!inp) return;
-  const name=(inp.value||'').trim();
-  if(!name) return;
-  if(EQUIP.includes(name)){ alert('「'+name+'」已經在清單裡了。'); inp.value=''; return; }
-  const cur=read(LS.equip,[]); cur.push(name); write(LS.equip,cur);
-  refreshEquip();
-  if(!sel.equip.includes(name)) sel.equip.push(name);   // 新增後順手勾選
-  inp.value='';
-  renderEquip();
-}
-const INTENSITY = ['趣味型','一般型','高活動量','考試準備'];
-const STAGES = ['暖身','體能','敏捷','基本技術','闖關','收操'];
+const CLASSES=['幼幼班','基礎班','選手班','品勢班','黑帶班','暑期集訓'];
+const AGES=['3-6歲','國小低年級','國小高年級','國中','高中以上'];
+const SIZES=['少於8人','8-15人','15-25人','25人以上'];
+const PLACES=['大場地','中場地','小場地','下雨室內'];
+const GOALS=['專注力','基本踢擊','品勢','對練','體能','禮貌紀律','反應速度','協調性'];
+const EQUIP=['踢靶','角錐','敏捷圈','軟墊','跳繩','反應燈','欄架','無器材'];
+const QUICK_STEPS=[
+  {key:'cls',title:'選擇班級',items:CLASSES},
+  {key:'age',title:'選擇年齡',items:AGES},
+  {key:'size',title:'選擇人數',items:SIZES},
+  {key:'place',title:'選擇場地',items:PLACES},
+  {key:'goals',title:'選擇課程目標',items:GOALS,multi:true},
+  {key:'equip',title:'選擇器材',items:EQUIP,multi:true}
+];
+let screen='home', quickStep=0, quick={cls:'',age:'',size:'',place:'',goals:[],equip:[]}, CURRENT=normalizeLesson(read(LS.current,null)), materialTab='lesson', histQuery='';
 
-/* 課程時間模板（依班別） */
-function timeTemplate(cls){
-  const young = ['幼幼班','幼兒班'].includes(cls);
-  if(young){
-    return [
-      {t:'0-10分鐘', stage:'暖身',   label:'集合與暖身'},
-      {t:'10-25分鐘',stage:'體能',   label:'大肌肉活動'},
-      {t:'25-40分鐘',stage:'敏捷',   label:'協調敏捷訓練'},
-      {t:'40-55分鐘',stage:'基本技術',label:'跆拳道基本技術'},
-      {t:'55-70分鐘',stage:'闖關',   label:'遊戲訓練'},
-      {t:'70-82分鐘',stage:'闖關',   label:'闖關挑戰'},
-      {t:'82-90分鐘',stage:'收操',   label:'收操與總結'},
-    ];
+function normalizeLesson(raw){
+  if(!raw)return null;
+  if(raw.cls && Array.isArray(raw.blocks) && raw.parent)return raw;
+  if(raw.ctx){
+    return buildLesson({
+      cls:raw.ctx.cls||'基礎班',
+      age:raw.ctx.age||'國小低年級',
+      size:SIZES.includes(raw.ctx.size)?raw.ctx.size:'8-15人',
+      place:raw.ctx.place||'中場地',
+      goals:(raw.ctx.goals||['基本踢擊']).map(g=>g==='基本動作'||g==='前踢'?'基本踢擊':g).filter(g=>GOALS.includes(g)),
+      equip:(raw.ctx.equip||['踢靶']).map(e=>EQUIP.includes(e)?e:'無器材')
+    }, raw.mode||'舊課表轉換');
   }
-  // 一般 60 分鐘模板
-  return [
-    {t:'0-8分鐘',  stage:'暖身',   label:'集合與動態暖身'},
-    {t:'8-20分鐘', stage:'體能',   label:'體能與核心訓練'},
-    {t:'20-30分鐘',stage:'敏捷',   label:'敏捷與步伐'},
-    {t:'30-48分鐘',stage:'基本技術',label:'跆拳道技術訓練'},
-    {t:'48-56分鐘',stage:'闖關',   label:'實戰/闖關應用'},
-    {t:'56-60分鐘',stage:'收操',   label:'收操與總結'},
+  return null;
+}
+
+function seed(){
+  if(read(LS.seed,false))return;
+  const materials=[
+    {id:uid(),name:'紅綠燈反應衝刺',stage:'暖身',goals:['反應速度','專注力'],equipment:['角錐'],content:'教練喊綠燈前進、紅燈停止、黃燈小碎步，加入方向變化。',coach:'規則先短講，先慢後快，停止時要求身體定住。',assistant:'站終點維持隊伍與安全距離。',safety:'折返區不要太靠牆，避免衝撞。',alt:'小場地改成原地反應步伐。'},
+    {id:uid(),name:'基本前踢踢靶',stage:'主課',goals:['基本踢擊'],equipment:['踢靶'],content:'提膝、踢出、收腳、落地四拍分解，最後做連續踢靶。',coach:'先看膝蓋方向，再看腳背擊中位置。',assistant:'持靶調高度，提醒排隊孩子保持距離。',safety:'持靶者站穩，踢擊區一次一人。',alt:'無器材可改踢空氣目標線。'},
+    {id:uid(),name:'品勢八拍分解',stage:'主課',goals:['品勢','禮貌紀律'],equipment:['無器材'],content:'每 8 拍停一次，確認站姿、手部路線與視線。',coach:'口令清楚，錯誤先改方向再改細節。',assistant:'站側邊示範，協助後排修正方向。',safety:'手刀與踢腿時保留左右間距。',alt:'年紀小改成鏡像模仿。'},
+    {id:uid(),name:'分站循環體能',stage:'主課',goals:['體能','協調性'],equipment:['角錐','敏捷圈','跳繩'],content:'三站各 40 秒：快腳、折返、跳繩，輪轉 3 回合。',coach:'用短回合維持品質，不要只追求累。',assistant:'每站一名助教記分與控安全。',safety:'站與站之間保留通道。',alt:'人數超過 25 人優先使用這種分站。'},
+    {id:uid(),name:'靜態伸展與今日回顧',stage:'收操',goals:['禮貌紀律'],equipment:['無器材'],content:'大腿前側、後側、髖部伸展，最後請孩子說出今天一個進步。',coach:'讓心跳降下來，用正向語句收尾。',assistant:'整理器材，協助個別孩子喝水。',safety:'伸展不彈震，不壓迫關節。',alt:'幼兒改成聞花香吹蠟燭呼吸。'}
   ];
-}
-
-/* ============================================================
-   種子素材庫（出廠即可用）
-   ============================================================ */
-function seedMaterials(){
-  return [
-  {id:uid(),name:'紅綠燈起步衝刺',ages:['3-4歲','5-6歲','國小低年級'],classes:['幼幼班','幼兒班','基礎班'],equipment:['角錐'],goals:['反應力','專注力','體能'],stage:'暖身',time:'8分鐘',
-   content:'用角錐排出起點與終點，教練喊「綠燈」往前跑、「紅燈」立刻定住、「黃燈」原地小碎步。逐步加入轉身、跳躍變化。',
-   keypoints:'聽指令再行動，培養「停得住」的專注與煞車能力。',
-   commands:'「綠燈！」「紅燈停！」「黃燈準備～」「眼睛看教練！」',
-   assistant:'站在終點當裁判，提醒衝過頭的孩子減速、鼓勵慢的孩子。',
-   safety:'地面淨空、孩子間隔一個手臂，避免相撞。',
-   variations:'進階版：紅燈時要單腳站立 3 秒。',video:'',note:'最好的開場暖身，秒收心。'},
-
-  {id:uid(),name:'敏捷圈快腳階梯',ages:['5-6歲','國小低年級','國小中年級','國小高年級'],classes:['幼兒班','基礎班','選手班'],equipment:['敏捷圈'],goals:['協調性','敏捷','體能','對打步伐'],stage:'敏捷',time:'10分鐘',
-   content:'敏捷圈一字排開，依序進行：單腳跳→雙腳開合→左右交叉步→高抬腿。每輪換不同腳法。',
-   keypoints:'腳尖點地、節奏穩定，眼睛看前方不看腳。',
-   commands:'「腳步輕一點！」「節奏～快快快！」「抬頭看前面！」',
-   assistant:'排頭示範一次動作，維持隊伍不擠在一起。',
-   safety:'圈要平貼地面，避免踩到邊緣滑倒。',
-   variations:'加入反應燈：亮燈才出發。',video:'',note:''},
-
-  {id:uid(),name:'踢靶連續前踢',ages:['5-6歲','國小低年級','國小中年級','國小高年級','國中'],classes:['幼兒班','基礎班','選手班','黑帶班'],equipment:['踢靶'],goals:['前踢','基本動作','爆發力'],stage:'基本技術',time:'12分鐘',
-   content:'兩人一組或教練持靶，提膝→前踢→收腳還原。強調提膝高度與收腳。每人連續 10 下換邊。',
-   keypoints:'先提膝再伸腿，踢完一定收回，重心穩在支撐腳。',
-   commands:'「提膝！」「踢！」「收腳！」「站好下一個！」',
-   assistant:'幫忙持靶調整高度，數次數、給每個孩子拍手。',
-   safety:'踢擊區保持間距，持靶者站穩、靶面對準。',
-   variations:'進階：前踢後接下壓踢。',video:'',note:'晉級考必備基本功。'},
-
-  {id:uid(),name:'氣墊跳躍闖關島',ages:['3-4歲','5-6歲','國小低年級'],classes:['幼幼班','幼兒班','基礎班'],equipment:['氣墊','角錐'],goals:['平衡感','核心穩定','爆發力','體能'],stage:'闖關',time:'12分鐘',
-   content:'氣墊當「安全島」，孩子從角錐起點雙腳跳上氣墊、定住 2 秒、再跳下繼續到終點。串成一條闖關路線。',
-   keypoints:'落地屈膝緩衝、定住考驗核心，享受跳躍的成就感。',
-   commands:'「準備～跳！」「站穩兩秒！」「下一位加油！」',
-   assistant:'站在氣墊旁保護落地、扶不穩的孩子，控制一次一人上墊。',
-   safety:'氣墊放軟墊上防滑，一次一人，落地區淨空。',
-   variations:'加入欄架當低矮跨越關卡。',video:'',note:'孩子最愛，氣氛炸裂。'},
-
-  {id:uid(),name:'欄架小跨欄',ages:['5-6歲','國小低年級','國小中年級'],classes:['幼兒班','基礎班','暑期班'],equipment:['欄架'],goals:['協調性','敏捷','體能','平衡感'],stage:'敏捷',time:'8分鐘',
-   content:'低欄架等距排列，進行高抬腿跨越、單腳連續跨、側向跨步。',
-   keypoints:'抬膝過欄、手腳協調擺動，不踢倒欄架。',
-   commands:'「膝蓋抬高！」「一二一二！」「手擺起來！」',
-   assistant:'扶正被踢倒的欄架，維持間距。',
-   safety:'用可倒式低欄，避免絆倒受傷。',
-   variations:'跨完接一個前踢踢靶。',video:'',note:''},
-
-  {id:uid(),name:'反應燈搶燈對戰',ages:['國小中年級','國小高年級','國中','成人'],classes:['基礎班','選手班','黑帶班','健身班'],equipment:['反應燈'],goals:['反應力','爆發力','對打步伐','專注力'],stage:'體能',time:'10分鐘',
-   content:'反應燈散佈場地，亮燈即衝刺拍熄。可單人計時、雙人競賽。加入跆拳道步伐移動。',
-   keypoints:'用前腳掌移動、降低重心、預判最近的燈。',
-   commands:'「重心放低！」「快！熄掉它！」「眼睛掃全場！」',
-   assistant:'記錄秒數與分數，營造比賽氣氛。',
-   safety:'移動範圍劃清楚，避免互撞。',video:'',note:'選手班反應訓練神器。'},
-
-  {id:uid(),name:'角錐之字運球步伐',ages:['國小低年級','國小中年級','國小高年級','國中'],classes:['基礎班','選手班','健身班'],equipment:['角錐'],goals:['敏捷','對打步伐','協調性','體能'],stage:'敏捷',time:'8分鐘',
-   content:'角錐排成之字，用跆拳道墊步、滑步通過每個角錐，到底折返。',
-   keypoints:'保持備戰姿勢、不交叉腳、過錐時急停變向。',
-   commands:'「備戰姿勢！」「滑步不要跳！」「急停！」',
-   assistant:'示範正確步伐，糾正交叉腳。',
-   safety:'地面防滑，折返處留緩衝空間。',video:'',note:''},
-
-  {id:uid(),name:'滾筒核心平衡',ages:['國小中年級','國小高年級','國中','成人'],classes:['選手班','黑帶班','健身班'],equipment:['滾筒','軟墊'],goals:['核心穩定','平衡感','基本動作'],stage:'體能',time:'10分鐘',
-   content:'軟墊上以滾筒做棒式滾動、坐姿平衡、跪姿單手前推，訓練深層核心。',
-   keypoints:'肚子收緊、呼吸不憋氣、動作慢而穩。',
-   commands:'「肚子用力！」「慢慢來不要晃！」「呼吸！」',
-   assistant:'在旁保護、計時 30 秒一組。',
-   safety:'滾筒易滑，務必在軟墊上進行。',video:'',note:'核心穩，踢技才穩。'},
-
-  {id:uid(),name:'品勢分解口令練習',ages:['國小低年級','國小中年級','國小高年級','國中','成人'],classes:['品勢班','基礎班','黑帶班'],equipment:[],goals:['品勢','基本動作','晉級考試準備','專注力'],stage:'基本技術',time:'15分鐘',
-   content:'將當前品勢分解為 4 個小段，逐段慢練→喊口令同步練→串接整套。',
-   keypoints:'方向正確、發力定點、眼神先到位。',
-   commands:'「準備～」「下一個動作！」「定！」「眼睛看方向！」',
-   assistant:'站在隊伍前當鏡像示範，幫忙看方向錯誤的孩子。',
-   safety:'保持前後左右間距，避免揮拳踢腿碰到同伴。',
-   variations:'閉眼默背動作順序，加深記憶。',video:'',note:'考帶必練。'},
-
-  {id:uid(),name:'跳繩機節奏體能',ages:['國小中年級','國小高年級','國中','成人'],classes:['基礎班','選手班','健身班','暑期班'],equipment:['跳繩機'],goals:['體能','協調性','爆發力'],stage:'體能',time:'8分鐘',
-   content:'跳繩機 30 秒跳 / 30 秒休，3-4 輪。加入開合跳、單腳交替變化。',
-   keypoints:'前腳掌落地、手腕轉繩、節奏穩定。',
-   commands:'「輕輕跳！」「撐住最後十秒！」「手腕用力！」',
-   assistant:'計時喊秒數、數下數，鼓勵撐完。',
-   safety:'間距足夠避免繩子打到旁人。',video:'',note:''},
-
-  {id:uid(),name:'集合坐好點名儀式',ages:['3-4歲','5-6歲','國小低年級','國小中年級'],classes:['幼幼班','幼兒班','基礎班'],equipment:[],goals:['禮貌紀律','專注力','團隊合作'],stage:'暖身',time:'5分鐘',
-   content:'固定集合點盤腿坐好，行禮問好、點名回應「有！」、宣布今日目標。建立上課儀式感。',
-   keypoints:'眼睛看教練、聲音宏亮、坐姿端正，建立規矩。',
-   commands:'「立正！」「敬禮～」「點到名字大聲說有！」',
-   assistant:'幫忙整隊、提醒坐姿，記錄缺席。',
-   safety:'—',
-   variations:'加入今日心情手勢（讚/普通/想睡）。',video:'',note:'每堂課固定開場，紀律從這裡開始。'},
-
-  {id:uid(),name:'伸展收操與今日回顧',ages:['3-4歲','5-6歲','國小低年級','國小中年級','國小高年級','國中','成人'],classes:['幼幼班','幼兒班','基礎班','品勢班','選手班','黑帶班','健身班','暑期班'],equipment:['軟墊'],goals:['核心穩定','禮貌紀律'],stage:'收操',time:'6分鐘',
-   content:'坐姿與站姿靜態伸展腿後、髖、肩。輪流說一句「今天我學到…」，行禮下課。',
-   keypoints:'伸展到緊但不痛、呼吸放慢，回顧加深記憶。',
-   commands:'「深呼吸～」「伸展到會緊就好！」「今天學到什麼？」',
-   assistant:'帶頭做伸展、引導孩子說出收穫。',
-   safety:'伸展不彈震，循序漸進。',video:'',note:'收操順便產出家長回饋素材。'},
-
-  {id:uid(),name:'下壓踢扶把練習',ages:['國小中年級','國小高年級','國中','成人'],classes:['基礎班','品勢班','選手班','黑帶班'],equipment:['欄杆'],goals:['下壓','基本動作','平衡感'],stage:'基本技術',time:'10分鐘',
-   content:'扶欄杆做外擺下壓、內擺下壓，強調腿伸直、髖關節打開、腳尖勾。',
-   keypoints:'支撐腳穩、腿打直、下壓有控制不甩。',
-   commands:'「腳尖勾起來！」「腿打直！」「下壓控制住！」',
-   assistant:'扶欄杆穩定、提醒站姿，分組輪換。',
-   safety:'欄杆固定牢靠，注意旁邊間距。',video:'',note:''},
-
-  {id:uid(),name:'兩人團隊搬運闖關',ages:['國小低年級','國小中年級','國小高年級'],classes:['暑期班','基礎班'],equipment:['角錐','氣墊'],goals:['團隊合作','體能','協調性'],stage:'闖關',time:'10分鐘',
-   content:'兩人一組合作把氣墊/角錐從起點搬到終點繞錐折返，比速度也比合作。',
-   keypoints:'溝通分工、步調一致，重點是合作不是輸贏。',
-   commands:'「跟你的夥伴喊口號！」「一起走！」「互相加油！」',
-   assistant:'分組配對、確保每組安全、鼓勵落後組。',
-   safety:'搬運物不擋視線，路線淨空。',video:'',note:'暑期班團康首選。'},
-
-  {id:uid(),name:'動態關節暖身操',ages:['國小低年級','國小中年級','國小高年級','國中','成人'],classes:['基礎班','品勢班','選手班','黑帶班','健身班'],equipment:[],goals:['基本動作','協調性','禮貌紀律'],stage:'暖身',time:'6分鐘',
-   content:'由頸→肩→腰→髖→膝→踝逐關節繞環，搭配原地高抬腿、踏步開合，喚醒全身。',
-   keypoints:'每個關節都活動到、動作由小到大，避免冷身受傷。',
-   commands:'「跟我數八拍！」「動作放大！」「呼吸不要憋！」',
-   assistant:'站排頭帶動作、注意有沒有人偷懶或代償。',
-   safety:'繞環速度由慢漸快，頸部不過度後仰。',
-   variations:'加入跆拳道馬步、弓步靜態伸展。',video:'',note:'技術課固定開場。'},
-
-  {id:uid(),name:'側踢踢靶定位練習',ages:['國小中年級','國小高年級','國中','成人'],classes:['基礎班','選手班','黑帶班'],equipment:['踢靶'],goals:['側踢','基本動作','核心穩定','爆發力'],stage:'基本技術',time:'12分鐘',
-   content:'側身提膝→側踢踢靶→收腳還原。先慢動作定位力點（腳刀/腳跟），再加速度連續踢。',
-   keypoints:'側身、提膝到位、髖頂出去，力點正確，支撐腳穩。',
-   commands:'「側身！」「提膝！」「踢出去頂髖！」「收腳！」',
-   assistant:'持靶高度與每人腰部齊平，數次數、提醒收腳。',
-   safety:'踢擊區一人一靶，間距足夠。',video:'',note:'晉級常見技術。'},
-
-  {id:uid(),name:'欄杆連續跳體能爆發',ages:['國小高年級','國中','成人'],classes:['選手班','黑帶班','健身班'],equipment:['欄杆','軟墊'],goals:['爆發力','體能','核心穩定'],stage:'體能',time:'8分鐘',
-   content:'低欄杆連續雙腳跳越，30 秒一組做 4 組，落地立即再跳，訓練下肢爆發與心肺。',
-   keypoints:'落地屈膝緩衝、快速反彈、核心收緊不晃。',
-   commands:'「快彈起來！」「落地軟一點！」「撐住最後五個！」',
-   assistant:'計時計數、扶正欄杆、鼓勵撐完。',
-   safety:'欄杆務必可倒式、放軟墊上，避免絆倒。',video:'',note:'選手體能課。'},
-
-  {id:uid(),name:'反應燈品勢動作搶答',ages:['國小中年級','國小高年級','國中','成人'],classes:['品勢班','黑帶班','選手班'],equipment:['反應燈'],goals:['品勢','反應力','專注力','基本動作'],stage:'基本技術',time:'10分鐘',
-   content:'不同顏色燈對應不同品勢動作（如紅=下格擋、藍=中段攻擊），亮燈即做對應動作，訓練動作反射。',
-   keypoints:'看燈即反應、動作仍要標準不馬虎。',
-   commands:'「眼睛盯著燈！」「動作要漂亮！」「定住！」',
-   assistant:'設定燈光順序、糾正做錯動作的學員。',
-   safety:'保持間距，揮打不碰到旁人。',video:'',note:'品勢趣味化神器。'},
-
-  {id:uid(),name:'核心棒式撐體挑戰',ages:['國小高年級','國中','成人'],classes:['選手班','黑帶班','健身班'],equipment:['軟墊'],goals:['核心穩定','體能'],stage:'體能',time:'8分鐘',
-   content:'棒式、側棒、登山者交替。每式 30 秒，搭配音樂或倒數，比誰撐最久。',
-   keypoints:'背打直不塌腰、臀不翹高、呼吸均勻。',
-   commands:'「屁股夾緊！」「背打直！」「再撐十秒！」',
-   assistant:'巡場糾正姿勢、計時倒數、加油打氣。',
-   safety:'手腕不適者改用前臂撐。',video:'',note:'成人健身班受歡迎。'},
-
-  {id:uid(),name:'跳繩機間歇放電賽',ages:['國小中年級','國小高年級','國中'],classes:['基礎班','選手班','暑期班'],equipment:['跳繩機'],goals:['體能','爆發力','協調性'],stage:'闖關',time:'10分鐘',
-   content:'分組接力，每人跳 20 下換下一位，先完成的隊伍獲勝。可加開合跳、交叉跳變化。',
-   keypoints:'前腳掌落地、節奏穩、團隊互相加油。',
-   commands:'「加油快數！」「換人！」「你們這隊好快！」',
-   assistant:'分隊、計數、維持秩序與安全間距。',
-   safety:'繩子甩動範圍互不干擾。',video:'',note:'放電兼團隊合作。'},
-
-  {id:uid(),name:'呼吸冥想與禮貌收心',ages:['3-4歲','5-6歲','國小低年級','國小中年級','國小高年級','國中','成人'],classes:['幼幼班','幼兒班','基礎班','品勢班','選手班','黑帶班','健身班','暑期班'],equipment:['軟墊'],goals:['專注力','禮貌紀律','核心穩定'],stage:'收操',time:'5分鐘',
-   content:'盤腿閉眼，跟著教練做 5 次深呼吸，回顧今天學到什麼，向教練與同伴行禮道謝下課。',
-   keypoints:'安靜、專注呼吸，培養情緒穩定與禮貌。',
-   commands:'「閉上眼睛～」「深～呼～吸～」「謝謝教練、謝謝同學！」',
-   assistant:'維持安靜氛圍、帶頭行禮。',
-   safety:'—',
-   variations:'幼兒可改成「假裝聞花香、吹蠟燭」的呼吸遊戲。',video:'',note:'讓孩子安靜下課、家長接走好交接。'},
+  const videos=[
+    {id:uid(),title:'兒童跆拳道暖身遊戲搜尋',url:'https://www.youtube.com/results?search_query=%E5%85%92%E7%AB%A5%E8%B7%86%E6%8B%B3%E9%81%93+%E6%9A%96%E8%BA%AB%E9%81%8A%E6%88%B2',goals:['專注力','反應速度']},
+    {id:uid(),title:'Taekwondo kids kicking drills',url:'https://www.youtube.com/results?search_query=taekwondo+kids+kicking+drills',goals:['基本踢擊']}
   ];
+  const existingMaterials=read(LS.materials,[]);
+  const existingVideos=read(LS.videos,[]);
+  const names=new Set(existingMaterials.map(x=>x.name));
+  const titles=new Set(existingVideos.map(x=>x.title));
+  write(LS.materials,[...existingMaterials,...materials.filter(x=>!names.has(x.name))]);
+  write(LS.videos,[...existingVideos,...videos.filter(x=>!titles.has(x.title))]);
+  write(LS.seed,true);
 }
 
-function seedVideos(){
-  return [
-  {id:uid(),title:'幼兒紅綠燈反應遊戲',url:'https://youtube.com/',ages:['3-4歲','5-6歲'],classes:['幼幼班','幼兒班'],equipment:['角錐'],goals:['反應力','專注力'],stage:'暖身',level:'簡單',note:'暖身收心用'},
-  {id:uid(),title:'敏捷圈快腳訓練示範',url:'https://youtube.com/',ages:['國小低年級','國小中年級'],classes:['基礎班','選手班'],equipment:['敏捷圈'],goals:['敏捷','協調性'],stage:'敏捷',level:'中等',note:''},
-  {id:uid(),title:'前踢動作教學分解',url:'https://youtube.com/',ages:['5-6歲','國小低年級','國小中年級'],classes:['基礎班'],equipment:['踢靶'],goals:['前踢','基本動作'],stage:'基本技術',level:'簡單',note:'基本功'},
-  {id:uid(),title:'反應燈選手反應訓練',url:'https://youtube.com/',ages:['國小高年級','國中','成人'],classes:['選手班','黑帶班'],equipment:['反應燈'],goals:['反應力','爆發力'],stage:'體能',level:'進階',note:''},
-  ];
-}
-
-/* ---------- 初始化資料（版本化：升級時補新範例，不覆蓋使用者資料） ---------- */
-const SEED_VERSION=2;
-function ensureSeed(){
-  const v=read(LS.seed,0);
-  if(!v){ // 全新安裝
-    write(LS.mat, seedMaterials());
-    write(LS.vid, seedVideos());
-    write(LS.seed, SEED_VERSION);
-    return;
-  }
-  if(v<SEED_VERSION){ // 升級：補上新增、名稱不重複的範例
-    const cur=read(LS.mat,[]); const names=new Set(cur.map(m=>m.name));
-    seedMaterials().forEach(s=>{ if(!names.has(s.name))cur.push({...s,id:uid()}); });
-    write(LS.mat,cur);
-    write(LS.seed, SEED_VERSION);
-  }
-}
-
-/* ============================================================
-   選擇器狀態
-   ============================================================ */
-const sel = { cls:'', age:'', size:'', goals:[], equip:[], intensity:'一般型' };
-
-function buildOpts(){
-  const single = (containerId, arr, key, alt)=>{
-    const c=$(containerId); c.innerHTML='';
-    arr.forEach(v=>{
-      const d=document.createElement('div'); d.className='opt'+(alt?' altpool':''); d.textContent=v;
-      d.onclick=()=>{ sel[key]=v; [...c.children].forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); };
-      c.appendChild(d);
-    });
-  };
-  const multi = (containerId, arr, key, alt)=>{
-    const c=$(containerId); c.innerHTML='';
-    arr.forEach(v=>{
-      const d=document.createElement('div'); d.className='opt'; if(alt)d.classList.add('altmark'); d.textContent=v;
-      d.onclick=()=>{
-        const i=sel[key].indexOf(v);
-        if(i>=0){sel[key].splice(i,1); d.classList.remove('sel');}
-        else{sel[key].push(v); d.classList.add('sel'); if(alt)d.classList.add('alt');}
-        if(i>=0&&alt)d.classList.remove('alt');
-      };
-      c.appendChild(d);
-    });
-  };
-  single('optClass',CLASSES,'cls');
-  single('optAge',AGES,'age');
-  single('optSize',SIZES,'size');
-  renderGoals();
-  renderEquip();
-  single('optIntensity',INTENSITY,'intensity');
-  // 預設強度
-  setTimeout(()=>{ const ic=$('optIntensity'); if(ic.children[1])ic.children[1].classList.add('sel'); sel.intensity='一般型'; },0);
-  // 標準課表時間選擇
-  const tc=$('optStdTime'); tc.innerHTML='';
-  [['100','100分鐘'],['90','90分鐘'],['60','60分鐘'],['45','45分鐘'],['custom','自訂']].forEach(([v,label],idx)=>{
-    const d=document.createElement('div'); d.className='opt'; d.textContent=label; d.dataset.v=v;
-    if(idx===0)d.classList.add('sel');
-    d.onclick=()=>{ stdTimeSel=v; [...tc.children].forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); $('stdCustomWrap').classList.toggle('hidden', v!=='custom'); };
-    tc.appendChild(d);
-  });
-}
-let stdTimeSel='100';
-
-/* ============================================================
-   標準課表模板（系統核心）
-   選總時間 → 自動產生 做操/體能遊戲/基本動作/踢靶應用 四段可編輯課表
-   ============================================================ */
-let STD=null;
-const STD_PRESETS={100:[10,30,30,30],90:[10,25,25,30],60:[5,20,15,20],45:[5,15,10,15]};
-
-function stdDefaultSegments(){
-  return [
-    {id:uid(),name:'做操暖身',min:10,
-      purpose:'喚醒身體、收心進入上課狀態，建立規矩與專注。',
-      activities:[{id:uid(),text:'整隊行禮、點名問好、宣布今日目標'},{id:uid(),text:'頸→肩→腰→髖→膝→踝逐關節繞環'},{id:uid(),text:'原地高抬腿、開合跳、踏步活化'},{id:uid(),text:'馬步／弓步靜態伸展'}],
-      coach:'動作放慢放大、帶孩子數八拍；先收心再開始，眼睛看教練。',
-      assistant:'站排頭帶動作、整隊、提醒坐姿與秩序、記錄缺席。',
-      safety:'繞環由慢漸快、頸部不過度後仰；場地淨空，保持間距。',
-      warmth:'蹲下來和孩子平視、先叫名字再給指令，微笑開場讓孩子放鬆。',
-      parent:'暖身幫助孩子收心、預防運動傷害，也培養上課的規矩與專注力。'},
-    {id:uid(),name:'體能遊戲',min:30,
-      purpose:'透過遊戲訓練反應、協調、爆發力，並學會排隊等待、遵守規則與團隊合作——不是把孩子玩累，而是邊玩邊練能力。',
-      activities:[{id:uid(),text:'紅綠燈衝刺：訓練反應與「煞得住」'},{id:uid(),text:'敏捷圈／角錐快腳：訓練協調'},{id:uid(),text:'折返接力賽：爆發力＋團隊合作'},{id:uid(),text:'聽指令搶位遊戲：守規則＋排隊等待'}],
-      coach:'規則先講清楚再開始；強調「排隊、輪流、守規則」也是訓練；用計時與比賽製造氣氛，但別只追求累。',
-      assistant:'當裁判記分、維持排隊秩序、鼓勵落後的孩子、控制安全間距。',
-      safety:'移動路線淨空、孩子間隔一個手臂以上、避免衝撞與推擠。',
-      warmth:'多喊名字加油，輸的隊也要肯定努力，讓每個孩子都覺得自己有參與。',
-      parent:'這段在「玩中學」：練反應、協調與爆發力，同時教孩子排隊、守規則、和同伴合作。'},
-    {id:uid(),name:'基本動作',min:30,
-      purpose:'讓孩子聽得懂、願意做、動作方向正確，慢慢建立跆拳道基礎——不追求一次就完美。',
-      activities:[{id:uid(),text:'立正／準備姿勢／併步（聽口令）'},{id:uid(),text:'馬步下衝拳：方向與發力'},{id:uid(),text:'前踢分解：提膝→伸腿→收腳'},{id:uid(),text:'基本步伐／品勢慢練'}],
-      coach:'口令簡單、分解示範；先求方向對、再求標準；多給「再一次就更好」的正向回饋，不催不罵。',
-      assistant:'站隊伍前當鏡像示範、個別糾正方向錯的孩子、幫忙數次數。',
-      safety:'保持前後左右間距，揮拳踢腿時不會碰到同伴。',
-      warmth:'動作做不好不責備，肯定願意嘗試；用「你比剛剛更好了」幫孩子建立信心。',
-      parent:'這段在打基礎：讓孩子聽懂指令、把動作方向做對，跆拳道的基本功一步步穩穩建立。'},
-    {id:uid(),name:'踢靶應用',min:30,
-      purpose:'讓孩子敢踢、踢得到、踢得有力，有成就感、感覺自己變強，進步看得見。',
-      activities:[{id:uid(),text:'前踢踢靶：提膝→踢→收腳'},{id:uid(),text:'連續踢靶比次數（敢踢）'},{id:uid(),text:'移動踢靶：確保每個孩子踢得到'},{id:uid(),text:'闖關踢靶挑戰：放大成就感'}],
-      coach:'靶位調到孩子踢得到的高度；每個孩子都要踢到、踢出聲音；用「哇好大力！」放大成就感。',
-      assistant:'持靶調整高度、數次數、每個孩子踢完都拍手鼓勵。',
-      safety:'一人一靶、踢擊區間距足夠、持靶者站穩並對準。',
-      warmth:'讓每個孩子都成功踢到、被看見、被稱讚，帶著笑容與成就感下課。',
-      parent:'這段讓孩子敢踢、踢得到、踢得有力，建立成就感與自信，進步家長一眼看得見。'},
-  ];
-}
-function scaleMinutes(total){
-  const base=[10,30,30,30];
-  const m=base.map(b=>Math.max(1,Math.round(b*total/100)));
-  m[3]=Math.max(1, total-m[0]-m[1]-m[2]);
-  return m;
-}
-function segSum(S){return S.segments.reduce((a,s)=>a+(+s.min||0),0);}
-
-function generateStandard(){
-  let total, mins;
-  if(stdTimeSel==='custom'){
-    total=Math.max(20,Math.min(180, parseInt($('stdCustomMin').value)||75));
-    mins=scaleMinutes(total);
-  }else{
-    total=parseInt(stdTimeSel);
-    mins=STD_PRESETS[total]||scaleMinutes(total);
-  }
-  const segs=stdDefaultSegments();
-  segs.forEach((s,i)=>{ if(mins[i]!=null)s.min=mins[i]; });
-  STD={id:uid(),date:new Date().toISOString(),segments:segs};
-  stdPersist();
-  renderStandard();
-  window.scrollTo(0,0);
-  toast('已產生 '+total+' 分鐘標準課表');
-}
-
-function renderStandard(){
-  const S=STD; if(!S)return;
-  const total=segSum(S); let cum=0;
-  let html=`<div class="lesson-head">
-    <h2>🥋 標準課表 · ${total} 分鐘</h2>
-    <div class="meta">共 <b>${S.segments.length}</b> 段 · 段落時間相加 <b>${total}</b> 分鐘 · 每段可自由編輯</div>
-  </div>
-  <div class="btn-row" style="margin-bottom:12px">
-    <button class="btn sec sm" onclick="saveStdTemplate()">💾 存為常用模板</button>
-    <button class="btn sec sm" onclick="openTemplates()">📂 載入模板</button>
-  </div>`;
-  S.segments.forEach((seg,i)=>{
-    const start=cum, end=cum+(+seg.min||0); cum=end;
-    html+=`<div class="seg-block">
-      <div class="seg-head">
-        <span class="tline">${start}-${end}分</span>
-        <span class="snm">${esc(seg.name)}</span>
-        <input class="mins" type="number" min="1" value="${seg.min}" onchange="stdSetMin(${i},this.value)"> 分
+function renderPlan(){
+  if(screen==='quick')return renderQuick();
+  if(screen==='ai')return renderAI();
+  if(screen==='standard')return renderStandard();
+  if(screen==='result')return renderResult();
+  $('page-plan').innerHTML=`
+    <div class="hero">
+      <h2>今天上課，先按這裡</h2>
+      <p>只保留三個入口。趕時間、特殊狀況、沿用舊課表都能快速開始。</p>
+      <div class="status-row">
+        <div class="status-chip"><b>${read(LS.history,[]).length}</b><span>歷史課表</span></div>
+        <div class="status-chip"><b>${read(LS.materials,[]).length}</b><span>素材</span></div>
+        <div class="status-chip"><b>${CURRENT?goScore(CURRENT).score:'-'}</b><span>/go 分數</span></div>
       </div>
-      <div class="seg-tools">
-        <button onclick="stdEditSeg(${i})">✏️ 編輯內容</button>
-        <button onclick="stdMoveSeg(${i},-1)">↑ 上移</button>
-        <button onclick="stdMoveSeg(${i},1)">↓ 下移</button>
-        <button onclick="stdDupSeg(${i})">⧉ 複製</button>
-        <button class="p" onclick="stdDelSeg(${i})">🗑️ 刪除</button>
+    </div>
+    <div class="entry-grid">
+      <button class="entry-card primary" onclick="startQuick()">
+        <span class="entry-icon">⚡</span><span><h3>快速備課</h3><p>趕時間時，選班級、目標、器材後，立即產生今日課表。</p></span><span class="arrow">›</span>
+      </button>
+      <button class="entry-card ai" onclick="screen='ai';renderPlan()">
+        <span class="entry-icon">AI</span><span><h3>AI 智能備課</h3><p>描述下雨、人多、精神太好或器材不足，系統自動安排最適合課表。</p></span><span class="arrow">›</span>
+      </button>
+      <button class="entry-card hist" onclick="go('records')">
+        <span class="entry-icon">↺</span><span><h3>歷史課表微調</h3><p>從過去課表快速沿用，並提供變化版本，避免每次上課都一樣。</p></span><span class="arrow">›</span>
+      </button>
+    </div>`;
+}
+function startQuick(){screen='quick';quickStep=0;quick={cls:'',age:'',size:'',place:'',goals:[],equip:[]};renderPlan();window.scrollTo(0,0)}
+function renderQuick(){
+  const s=QUICK_STEPS[quickStep], val=quick[s.key], pct=((quickStep+1)/QUICK_STEPS.length)*100;
+  const dup=quick.cls&&quick.goals.length?duplicateAlert(quick.cls,quick.goals):'';
+  $('page-plan').innerHTML=`
+    <div class="step-shell">
+      <div class="step-head"><div><h2>${s.title}</h2><div class="muted">教練單手操作流程，一次只做一件事。</div></div><div class="progress-pill">${quickStep+1} / 6</div></div>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+      ${dup}
+      <div class="card">
+        <div class="choice-grid">
+          ${s.items.map(item=>{
+            const selected=s.multi?val.includes(item):val===item;
+            return `<button class="choice ${selected?'selected':''}" onclick="pickQuick('${s.key}','${item}',${!!s.multi})">${item}</button>`;
+          }).join('')}
+        </div>
       </div>
-      <div class="seg-body">
-        <div class="seg-field"><span class="k">🎯 今日目的</span>${esc(seg.purpose)||'<span style="color:#94a3b8">（未填）</span>'}</div>
-        <div class="seg-field"><span class="k">📝 實際活動內容</span><ul>${seg.activities.map(a=>`<li>${esc(a.text)}</li>`).join('')||'<li style="color:#94a3b8">（尚無小活動，點「編輯內容」新增）</li>'}</ul></div>
-        <div class="seg-field coach"><span class="k">🧑‍🏫 主教練教學提醒</span>${esc(seg.coach)}</div>
-        <div class="seg-field assist"><span class="k">🙌 助教任務卡</span>${esc(seg.assistant)}</div>
-        <div class="seg-field safe"><span class="k">⚠️ 安全提醒</span>${esc(seg.safety)}</div>
-        <div class="seg-field warm"><span class="k">🌱 教學溫度提醒</span>${esc(seg.warmth)}</div>
-        <div class="seg-field parent"><span class="k">👪 家長看得懂的成長說明</span>${esc(seg.parent)}</div>
+    </div>
+    <div class="sticky-actions">
+      <div class="btn-row">
+        <button class="btn ghost" onclick="prevQuick()">${quickStep===0?'首頁':'上一步'}</button>
+        <button class="btn" onclick="nextQuick()">${quickStep===5?'產生今日課表':'下一步'}</button>
       </div>
     </div>`;
-  });
-  html+=`<button class="btn sec sm" onclick="stdAddSeg()" style="margin-bottom:12px">＋ 新增段落</button>
-    <div class="btn-row">
-      <button class="btn sec sm" onclick="stdParent()">💬 產生家長回饋</button>
-      <button class="btn sec sm" onclick="stdPrint()">🖨️ 列印 / PDF</button>
-    </div>
-    <div id="stdParentOut" style="margin-top:10px"></div>
-    <div style="height:8px"></div>
-    <button class="btn dark" onclick="resetWizard()">↺ 重新選時間</button>`;
-  $('planResult').innerHTML=html;
-  $('planResult').classList.remove('hidden');
-  $('planWizard').classList.add('hidden');
 }
-
-function stdPersist(){write(LS.std,STD);saveHistoryStd(STD);}
-function stdSetMin(i,v){STD.segments[i].min=Math.max(1,parseInt(v)||1);stdPersist();renderStandard();}
-function stdMoveSeg(i,dir){const j=i+dir;if(j<0||j>=STD.segments.length)return;const a=STD.segments;[a[i],a[j]]=[a[j],a[i]];stdPersist();renderStandard();}
-function stdDupSeg(i){const c=JSON.parse(JSON.stringify(STD.segments[i]));c.id=uid();c.name+='（複製）';(c.activities||[]).forEach(a=>a.id=uid());STD.segments.splice(i+1,0,c);stdPersist();renderStandard();toast('已複製段落');}
-function stdDelSeg(i){if(STD.segments.length<=1){toast('至少保留一段');return;}if(!confirm('刪除「'+STD.segments[i].name+'」這一段？'))return;STD.segments.splice(i,1);stdPersist();renderStandard();}
-function stdAddSeg(){STD.segments.push({id:uid(),name:'新段落',min:10,purpose:'',activities:[],coach:'',assistant:'',safety:'',warmth:'',parent:''});stdPersist();renderStandard();stdEditSeg(STD.segments.length-1);}
-
-function stdEditSeg(i){
-  const s=STD.segments[i];
-  modal(`<button class="close" onclick="closeModal()">×</button>
-    <h3>✏️ 編輯段落</h3>
-    <input type="hidden" id="se_i" value="${i}">
-    <label class="fl">段落名稱</label><input class="f" id="se_name" value="${escAttr(s.name)}">
-    <label class="fl">時間（分鐘）</label><input class="f" id="se_min" type="number" min="1" value="${s.min}">
-    <label class="fl">🎯 今日目的</label><textarea class="f" id="se_purpose">${esc(s.purpose)}</textarea>
-    <label class="fl">📝 實際活動內容（小活動，可增刪）</label>
-    <div id="se_acts"></div>
-    <button class="btn sec sm" type="button" onclick="seAddActRow('')" style="margin-top:6px">＋ 新增小活動</button>
-    <label class="fl">🧑‍🏫 主教練教學提醒</label><textarea class="f" id="se_coach">${esc(s.coach)}</textarea>
-    <label class="fl">🙌 助教任務卡</label><textarea class="f" id="se_assistant">${esc(s.assistant)}</textarea>
-    <label class="fl">⚠️ 安全提醒</label><textarea class="f" id="se_safety">${esc(s.safety)}</textarea>
-    <label class="fl">🌱 教學溫度提醒</label><textarea class="f" id="se_warmth">${esc(s.warmth)}</textarea>
-    <label class="fl">👪 家長看得懂的成長說明</label><textarea class="f" id="se_parent">${esc(s.parent)}</textarea>
-    <div style="height:14px"></div>
-    <button class="btn" onclick="stdSaveSeg()">💾 儲存段落</button><div style="height:8px"></div>
-  `);
-  const box=$('se_acts'); box.innerHTML='';
-  (s.activities||[]).forEach(a=>seAddActRow(a.text));
-  if(!s.activities||!s.activities.length)seAddActRow('');
+function pickQuick(key,item,multi){
+  if(multi){
+    const arr=quick[key]; const i=arr.indexOf(item);
+    if(i>=0)arr.splice(i,1); else arr.push(item);
+    if(key==='equip'&&item==='無器材'&&arr.includes('無器材'))quick.equip=['無器材'];
+    if(key==='equip'&&item!=='無器材')quick.equip=quick.equip.filter(x=>x!=='無器材');
+  }else quick[key]=item;
+  renderPlan();
 }
-function seAddActRow(text){
-  const box=$('se_acts'); if(!box)return;
-  const row=document.createElement('div'); row.className='act-edit';
-  const inp=document.createElement('input'); inp.value=text||''; inp.placeholder='小活動內容';
-  const btn=document.createElement('button'); btn.textContent='✕'; btn.type='button'; btn.onclick=()=>row.remove();
-  row.appendChild(inp); row.appendChild(btn); box.appendChild(row);
+function prevQuick(){if(quickStep===0){screen='home';renderPlan();return}quickStep--;renderPlan()}
+function nextQuick(){
+  const s=QUICK_STEPS[quickStep], val=quick[s.key];
+  if(s.multi?!val.length:!val){toast('請先完成這一步');return}
+  if(quickStep<5){quickStep++;renderPlan();return}
+  CURRENT=buildLesson(quick,'快速備課'); persistCurrent(); screen='result'; renderPlan(); window.scrollTo(0,0);
 }
-function stdSaveSeg(){
-  const i=+$('se_i').value; const s=STD.segments[i];
-  s.name=$('se_name').value.trim()||'段落';
-  s.min=Math.max(1,parseInt($('se_min').value)||1);
-  s.purpose=$('se_purpose').value.trim();
-  s.coach=$('se_coach').value.trim();
-  s.assistant=$('se_assistant').value.trim();
-  s.safety=$('se_safety').value.trim();
-  s.warmth=$('se_warmth').value.trim();
-  s.parent=$('se_parent').value.trim();
-  s.activities=[...$('se_acts').querySelectorAll('input')].map(inp=>inp.value.trim()).filter(Boolean).map(t=>({id:uid(),text:t}));
-  stdPersist();closeModal();renderStandard();toast('已儲存');
-}
-
-/* 常用模板 */
-function saveStdTemplate(){
-  const name=prompt('模板名稱：','我的標準課表');
-  if(!name)return;
-  const tpls=read(LS.tpl,[]);
-  const obj={id:uid(),name,segments:JSON.parse(JSON.stringify(STD.segments))};
-  tpls.unshift(obj);
-  write(LS.tpl,tpls);cloudUpsert('templates',obj);toast(syncOn()?'已儲存並同步雲端：'+name:'已儲存模板：'+name);
-}
-function openTemplates(){
-  const tpls=read(LS.tpl,[]);
-  modal(`<button class="close" onclick="closeModal()">×</button>
-    <h3>📂 常用模板</h3>
-    ${tpls.length?tpls.map(t=>`<div class="litem">
-      <h4>${esc(t.name)}</h4>
-      <p>${t.segments.map(s=>esc(s.name)+' '+s.min+'分').join('、')}</p>
-      <div class="acts">
-        <button onclick="loadTemplate('${t.id}')">📥 套用</button>
-        <button class="del" onclick="delTemplate('${t.id}')">🗑️ 刪除</button>
-      </div>
-    </div>`).join(''):'<div class="empty"><span class="em">📂</span>還沒有儲存的模板</div>'}
-  `);
-}
-function loadTemplate(id){
-  const t=read(LS.tpl,[]).find(x=>x.id===id);if(!t)return;
-  STD={id:uid(),date:new Date().toISOString(),segments:JSON.parse(JSON.stringify(t.segments))};
-  stdPersist();closeModal();renderStandard();go('plan');window.scrollTo(0,0);toast('已套用模板');
-}
-function delTemplate(id){
-  if(!confirm('刪除此模板？'))return;
-  write(LS.tpl,read(LS.tpl,[]).filter(x=>x.id!==id));cloudDelete('templates',id);openTemplates();
-}
-
-/* 家長回饋（標準課表版） */
-function stdParent(){
-  const date=new Date();const ds=`${date.getMonth()+1}/${date.getDate()}`;
-  const txt=`🥋【${ds} 今日訓練回饋】\n\n各位家長好！今天的課程內容與孩子的成長重點 👇\n\n`+
-    STD.segments.map(s=>`📌 ${s.name}（${s.min}分鐘）\n${s.parent||s.purpose}`).join('\n\n')+
-    `\n\n😊 孩子們專注參與、勇於嘗試，非常值得鼓勵！\n🥋 我們不只教踢腿，更培養禮貌、紀律、專注與自信。\n🌟 回家可以請孩子示範今天學到的動作，給他一個大大的讚！\n\n下次上課見 👊`;
-  $('stdParentOut').innerHTML=`<div class="feedback-box">${txt.replace(/</g,'&lt;')}</div>
-    <div style="height:10px"></div>
-    <button class="btn sm" onclick="copyStdParent()">📋 複製內容</button>`;
-  window._stdfb=txt;
-}
-function copyStdParent(){const t=window._stdfb||'';navigator.clipboard?.writeText(t).then(()=>toast('已複製，貼到 LINE 群組即可')).catch(()=>toast('複製失敗'));}
-
-/* 列印 / PDF（標準課表版） */
-function stdPrint(){
-  if(!STD)return;
-  const d=new Date(STD.date);const ds=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
-  let cum=0;
-  const rows=STD.segments.map(s=>{
-    const start=cum,end=cum+(+s.min||0);cum=end;
-    return `<tr><td class="t">${start}-${end}分<br><b>${esc(s.name)}</b></td><td>
-      <div class="li"><b>今日目的：</b>${esc(s.purpose)}</div>
-      <div class="li"><b>活動內容：</b><ul>${s.activities.map(a=>`<li>${esc(a.text)}</li>`).join('')}</ul></div>
-      <div class="li"><b>主教練提醒：</b>${esc(s.coach)}</div>
-      <div class="li"><b>助教任務：</b>${esc(s.assistant)}</div>
-      <div class="li"><b>安全提醒：</b>${esc(s.safety)}</div>
-      <div class="li"><b>教學溫度：</b>${esc(s.warmth)}</div>
-      <div class="li"><b>家長說明：</b>${esc(s.parent)}</div>
-    </td></tr>`;
-  }).join('');
-  const html=`<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><title>標準課表 ${ds}</title>
-  <style>*{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;box-sizing:border-box}body{margin:24px;color:#0f172a}
-  h1{font-size:20px;margin:0 0 4px;border-bottom:3px solid #e11d48;padding-bottom:8px}
-  table{width:100%;border-collapse:collapse;margin-top:12px}td{border:1px solid #cbd5e1;padding:8px 10px;vertical-align:top;font-size:12px}
-  td.t{width:110px;background:#f1f5f9;text-align:center;font-size:11px}.li{margin:4px 0;line-height:1.5}.li b{color:#be123c}
-  ul{margin:4px 0;padding-left:18px}.ft{margin-top:16px;font-size:11px;color:#94a3b8;text-align:center}@media print{body{margin:12mm}}</style></head>
-  <body><h1>🥋 標準課表 · ${segSum(STD)} 分鐘</h1><div style="font-size:12px;color:#475569">日期：${ds}</div>
-  <table><tbody>${rows}</tbody></table>
-  <div class="ft">道館教練備課助手 · 列印於 ${new Date().toLocaleString('zh-TW')}</div>
-  <script>window.onload=function(){window.print()}<\/script></body></html>`;
-  const w=window.open('','_blank');if(!w){toast('請允許彈出視窗');return;}w.document.write(html);w.document.close();
-}
-
-/* ============================================================
-   技術動作 · 教學重點速查（招式庫，內建課綱）
-   ============================================================ */
-const TECH=[
-  {cat:'基本踢技',label:'教學重點',moves:[
-    {m:'前踢',p:'抬膝、腳背或前腳掌踢出、收腳，注意高度與落地位置'},
-    {m:'旋踢',p:'轉髖、抬膝、腳背踢靶'},
-    {m:'下壓踢',p:'抬腿上提、腳跟下壓'},
-    {m:'側踢',p:'膝蓋收緊、腳刀推出、身體控制'},
-    {m:'後踢',p:'回頭看目標、腳跟直線踢出'},
-    {m:'踢靶抬膝',p:'訓練抬膝與距離感'},
-    {m:'單腳連續踢',p:'平衡、控制、節奏'},
-    {m:'左右腳交替踢',p:'協調與換腳能力'},
-    {m:'連續前踢',p:'節奏與穩定'},
-  ]},
-  {cat:'進階＆特技踢',label:'教學重點',moves:[
-    {m:'後旋踢',p:'轉身、看目標、腳跟掃擊'},
-    {m:'轉身後踢',p:'轉身後直線攻擊'},
-    {m:'跳前踢',p:'起跳後前踢，落地平衡'},
-    {m:'跳旋踢',p:'起跳轉髖、空中踢擊'},
-    {m:'跳下壓',p:'起跳後下壓踢'},
-    {m:'連續旋踢',p:'節奏、平衡、換腳'},
-    {m:'旋踢接下壓',p:'組合攻擊'},
-    {m:'前腳旋踢',p:'速度與距離控制'},
-    {m:'滑步旋踢',p:'步伐加攻擊'},
-    {m:'雙飛踢',p:'空中左右腳連續踢'},
-  ]},
-  {cat:'對打應用',label:'應用方向',moves:[
-    {m:'前腳旋踢',p:'搶分、牽制'},
-    {m:'後腳旋踢',p:'主動攻擊'},
-    {m:'近身下壓',p:'破解貼近'},
-    {m:'推踢',p:'控制距離'},
-    {m:'側踢',p:'阻擋與破壞節奏'},
-    {m:'後踢',p:'反擊直線進攻'},
-    {m:'後旋踢',p:'反擊高分技術'},
-    {m:'雙飛',p:'連續得分'},
-    {m:'旋踢接後踢',p:'假動作與反擊'},
-    {m:'前腳假動作接後腳',p:'變化節奏'},
-    {m:'滑步前腳攻擊',p:'搶先手'},
-    {m:'退步反擊旋踢',p:'防守反擊'},
-    {m:'迎擊',p:'抓對方進攻時機'},
-  ]},
-  {cat:'站姿',label:'教學重點',moves:[
-    {m:'準備姿勢',p:'身體穩定、精神集中'},
-    {m:'並排站姿',p:'雙腳平行'},
-    {m:'前行步',p:'基礎移動站姿'},
-    {m:'弓步',p:'前腳彎、後腳直'},
-    {m:'後屈立',p:'重心後坐'},
-    {m:'虎步',p:'重心控制、前腳輕'},
-    {m:'馬步',p:'膝蓋外開、重心下沉'},
-    {m:'交叉步',p:'轉換與平衡'},
-    {m:'鶴立',p:'單腳平衡'},
-  ]},
-  {cat:'防禦技',label:'教學重點',moves:[
-    {m:'下防',p:'防禦下段，手臂路線清楚'},
-    {m:'中內防',p:'手從外往內防禦'},
-    {m:'中外防',p:'手從內往外防禦'},
-    {m:'上防',p:'保護頭部'},
-    {m:'手刀防',p:'手刀路線、肩膀放鬆'},
-    {m:'雙手刀防',p:'兩手配合'},
-    {m:'金剛防',p:'上下肢協調'},
-    {m:'山形防',p:'手臂角度與身體穩定'},
-    {m:'外腕防',p:'前臂外側防禦'},
-    {m:'內腕防',p:'前臂內側防禦'},
-    {m:'掌根防',p:'手掌根部防禦'},
-  ]},
-  {cat:'手技攻擊',label:'教學重點',moves:[
-    {m:'正拳',p:'拳頭路線、腰部發力'},
-    {m:'逆拳',p:'重心與轉腰'},
-    {m:'雙拳攻擊',p:'左右協調'},
-    {m:'手刀打擊',p:'手刀角度'},
-    {m:'背拳',p:'手腕控制'},
-    {m:'肘擊',p:'近距離攻擊'},
-    {m:'貫手',p:'手指方向、路線精準'},
-    {m:'掌根攻擊',p:'推擊與穩定'},
-    {m:'錘拳',p:'手臂下砸路線'},
-  ]},
-  {cat:'品勢',label:'品勢',moves:[
-    {m:'初級',p:'太極一章、太極二章'},
-    {m:'基礎',p:'太極三章、太極四章'},
-    {m:'中級',p:'太極五章、太極六章'},
-    {m:'進階',p:'太極七章、太極八章'},
-    {m:'黑帶',p:'高麗、金剛、太白、平原、十進、地跆、天拳、漢水、一如'},
-  ]},
-  {cat:'滾翻',label:'教學重點',moves:[
-    {m:'前滾翻',p:'收下巴、圓背、雙手撐地'},
-    {m:'後滾翻',p:'收下巴、手撐耳旁、推地'},
-    {m:'側滾',p:'身體縮小、保護頭部'},
-    {m:'肩滾',p:'從肩膀滾過，避免壓頭'},
-    {m:'蛋捲滾',p:'幼幼班入門，抱膝左右滾'},
-    {m:'小烏龜翻身',p:'幼兒身體控制'},
-    {m:'趴姿翻身',p:'核心與方向感'},
-  ]},
-  {cat:'護身倒法',label:'教學重點',moves:[
-    {m:'後倒拍墊',p:'下巴收、手拍墊'},
-    {m:'側倒拍墊',p:'側身保護'},
-    {m:'前倒保護',p:'手臂緩衝，不用臉著地'},
-    {m:'跌倒起身',p:'快速安全站起'},
-    {m:'被推失衡恢復',p:'重心控制'},
-  ]},
-  {cat:'體能動作',label:'教學重點',moves:[
-    {m:'熊爬',p:'肩膀、核心、協調'},
-    {m:'螃蟹走',p:'手腳協調'},
-    {m:'豹爬',p:'全身控制'},
-    {m:'毛毛蟲走',p:'柔軟度、核心'},
-    {m:'平板撐',p:'核心穩定'},
-    {m:'登山者',p:'核心與心肺'},
-    {m:'波比跳',p:'爆發力與心肺'},
-    {m:'鴨子走',p:'下肢肌力'},
-    {m:'青蛙跳',p:'下肢爆發'},
-  ]},
-  {cat:'跳躍踢',label:'教學重點',moves:[
-    {m:'跳前踢',p:'起跳、踢擊、落地'},
-    {m:'跳旋踢',p:'起跳轉髖、空中踢擊'},
-    {m:'跳側踢',p:'空中收膝、腳刀推出'},
-    {m:'跳下壓',p:'空中抬腿、腳跟下壓'},
-    {m:'飛踢',p:'助跑起跳、空中攻擊'},
-    {m:'雙飛踢',p:'空中連續左右腳'},
-    {m:'三飛踢',p:'空中連續三次踢擊'},
-  ]},
-  {cat:'旋轉特技踢',label:'教學重點',moves:[
-    {m:'360旋踢',p:'起跳旋轉、找目標'},
-    {m:'360後踢',p:'轉身後直線踢出'},
-    {m:'360後旋踢',p:'空中旋轉後掃擊'},
-    {m:'540旋踢',p:'騰空旋轉與爆發'},
-    {m:'540後旋踢',p:'空中轉體與腳跟攻擊'},
-    {m:'720踢',p:'高階空中旋轉'},
-    {m:'龍捲風踢',p:'旋轉節奏與身體控制'},
-  ]},
-  {cat:'飛踢破板',label:'教學重點',moves:[
-    {m:'飛越踢靶',p:'助跑、起跳、空中踢靶'},
-    {m:'障礙踢靶',p:'空中距離感'},
-    {m:'跳人踢板',p:'安全距離、起跳點'},
-    {m:'高空下壓',p:'柔軟度與控制'},
-    {m:'連續破板',p:'節奏與準確'},
-    {m:'轉身破板',p:'旋轉與準度'},
-    {m:'多方向踢靶',p:'空間感與反應'},
-  ]},
-  {cat:'表演動作',label:'教學重點',moves:[
-    {m:'高抬腿控制',p:'柔軟度與核心'},
-    {m:'側踢定格',p:'平衡與肌力'},
-    {m:'下壓定格',p:'控制與穩定'},
-    {m:'轉身踢接定格',p:'旋轉後控制'},
-    {m:'騰空踢擊',p:'爆發與空中姿態'},
-    {m:'空翻接踢',p:'高階表演動作'},
-    {m:'跳躍轉體落地',p:'落地穩定'},
-    {m:'音樂節奏組合',p:'動作與節奏配合'},
-  ]},
-];
-let techCat='全部';
-function renderTechCats(){
-  const c=$('techCats'); if(!c)return;
-  const cats=['全部',...TECH.map(t=>t.cat)];
-  c.innerHTML=cats.map(cat=>`<span class="opt ${techCat===cat?'sel':''}" onclick="setTechCat('${cat}')">${cat}</span>`).join('');
-}
-function setTechCat(cat){techCat=cat;renderTech();}
-function renderTech(){
-  renderTechCats();
-  const q=($('techSearch')?.value||'').toLowerCase();
-  const el=$('techList'); let h='';
-  TECH.forEach((t,ci)=>{
-    if(techCat!=='全部'&&techCat!==t.cat)return;
-    let rows='';
-    t.moves.forEach((mv,mi)=>{
-      if(q && !(mv.m+mv.p).toLowerCase().includes(q))return;
-      rows+=`<div class="litem" style="padding:11px;margin-bottom:8px">
-        <h4 style="margin:0 0 2px">${esc(mv.m)}</h4>
-        <p style="margin:0"><b style="color:var(--brand2)">${esc(t.label)}：</b>${esc(mv.p)}</p>
-        <div class="acts"><button onclick="addMoveToStd(${ci},${mi})">＋ 加入課表段落</button></div>
-      </div>`;
-    });
-    if(rows){ h+=`<div class="sec-h" style="font-size:14px;margin:14px 0 8px">${t.cat}<span class="line"></span></div>`+rows; }
-  });
-  el.innerHTML=h||'<div class="empty"><span class="em">🔍</span>查無符合動作</div>';
-}
-let _pendingMove=null;
-function addMoveToStd(ci,mi){
-  const mv=TECH[ci].moves[mi]; if(!mv)return;
-  _pendingMove=mv.m+'（'+mv.p+'）';
-  if(!STD){toast('請先到「備課」產生標準課表');return;}
-  modal(`<button class="close" onclick="closeModal()">×</button>
-    <h3>加入哪一段？</h3>
-    <p class="step-hint" style="margin:0 0 10px">「${esc(mv.m)}」將加入該段的「實際活動內容」。</p>
-    ${STD.segments.map((s,i)=>`<button class="opt" style="display:block;width:100%;text-align:left;margin-bottom:8px;font-size:14px" onclick="doAddMove(${i})">${esc(s.name)}（${s.min}分）</button>`).join('')}
-  `);
-}
-function doAddMove(i){
-  if(!STD||!_pendingMove)return;
-  STD.segments[i].activities.push({id:uid(),text:_pendingMove});
-  stdPersist();closeModal();renderStandard();
-  toast('已加入「'+STD.segments[i].name+'」');
-}
-
-/* ============================================================
-   課表產生核心
-   ============================================================ */
-function scoreMaterial(m, ctx){
-  let s=0;
-  if(m.stage===ctx.stage) s+=5;
-  if(m.classes && m.classes.includes(ctx.cls)) s+=3;
-  if(m.ages && m.ages.includes(ctx.age)) s+=3;
-  // 器材：有勾選器材時，命中加分；不需器材的也可用
-  const need=(m.equipment||[]).filter(Boolean);
-  if(need.length===0){ s+=1; }
-  else{
-    const hit=need.filter(e=>ctx.equip.includes(e)).length;
-    if(need.every(e=>ctx.equip.includes(e))) s+=4; // 全部器材都有
-    s+=hit;
-    if(ctx.equip.length>0 && hit===0) s-=3; // 有指定器材但完全用不到
+function duplicateAlert(cls,goals){
+  const h=read(LS.history,[]), since=Date.now()-7*864e5;
+  for(const g of goals){
+    const count=h.filter(x=>(x.cls||x.ctx?.cls)===cls && (x.goals||x.ctx?.goals||[]).includes(g) && Date.parse(x.date)>since).length;
+    if(count>=2)return `<div class="alert"><b>防重複提醒</b>本班近 7 天已練過 ${count} 次${g}，建議今天加入步伐、反應或品勢變化，避免課程重複。
+      <div class="btn-grid" style="margin-top:10px"><button class="btn sm ghost" onclick="applyVariation('game')">改成遊戲化版本</button><button class="btn sm ghost" onclick="applyVariation('station')">改成分站循環版本</button><button class="btn sm ghost" onclick="applyVariation('low')">改成低器材版本</button></div></div>`;
   }
-  // 目標命中
-  const gh=(m.goals||[]).filter(g=>ctx.goals.includes(g)).length;
-  s+=gh*2;
-  return s;
-}
-
-function pickForStage(stage, ctx, used){
-  const mats=read(LS.mat,[]);
-  const cand=mats
-    .map(m=>({m, sc:scoreMaterial(m,{...ctx,stage})}))
-    .filter(x=>!used.has(x.m.id))
-    .sort((a,b)=>b.sc-a.sc);
-  // 優先同 stage 且分數>0
-  let best=cand.find(x=>x.m.stage===stage && x.sc>0) || cand.find(x=>x.sc>2) || cand[0];
-  return best? best.m : null;
-}
-
-function parentFriendly(goals){
-  const map={
-    '專注力':'更能專心聽指令、減少分心','平衡感':'身體更穩、站得更挺','協調性':'手腳更協調靈活',
-    '反應力':'反應更快、判斷更敏捷','體能':'體力與心肺更好','爆發力':'力量與速度提升',
-    '核心穩定':'核心更有力、姿勢更正確','基本動作':'打好跆拳道基本功','前踢':'前踢動作更標準',
-    '下壓':'柔軟度與下壓踢進步','側踢':'側踢力量與角度進步','品勢':'品勢更熟練、記憶力提升',
-    '對打步伐':'移動步伐更靈活','禮貌紀律':'更懂禮貌與規矩','團隊合作':'學會與同伴合作',
-    '晉級考試準備':'為晉級考做好準備'
-  };
-  return goals.map(g=>map[g]||g);
-}
-
-function buildLessonObject(ctx){
-  const tmpl=timeTemplate(ctx.cls);
-  const used=new Set();
-  const blocks=tmpl.map(seg=>{
-    const m=pickForStage(seg.stage, ctx, used);
-    if(m) used.add(m.id);
-    return {seg, m};
-  });
-  // 推薦影片
-  const vids=read(LS.vid,[]);
-  const recVideos=vids.map(v=>{
-    let s=0;
-    if(v.classes&&v.classes.includes(ctx.cls))s+=2;
-    if(v.ages&&v.ages.includes(ctx.age))s+=2;
-    if((v.goals||[]).some(g=>ctx.goals.includes(g)))s+=2;
-    if((v.equipment||[]).some(e=>ctx.equip.includes(e)))s+=1;
-    return {v,s};
-  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.v);
-
-  return {
-    id:uid(), date:new Date().toISOString(), ctx, blocks, recVideos
-  };
-}
-
-/* ---------- 線上找影片：多語言關鍵字 + 各平台搜尋網址（免金鑰） ---------- */
-/* 搜尋語言：zh中文 / ko韓文 / en英文 / ja日文 */
-const LANGS=[['zh','🇹🇼中文'],['ko','🇰🇷韓文'],['en','🇺🇸英文'],['ja','🇯🇵日文']];
-const LANG_REL={zh:'zh-Hant',ko:'ko',en:'en',ja:'ja'};
-let searchLang='zh';
-/* 詞彙翻譯表（以中文為 key）。非中文找不到的詞會略過，避免混語。 */
-const DIC={
-  '跆拳道':{ko:'태권도',en:'taekwondo',ja:'テコンドー'},
-  '教學':{ko:'수업',en:'training drills',ja:'指導'},
-  '幼兒':{ko:'유아',en:'preschool kids',ja:'幼児'},
-  '兒童':{ko:'어린이',en:'kids',ja:'子供'},
-  '青少年':{ko:'청소년',en:'teen',ja:'青少年'},
-  // 階段／技術
-  '暖身遊戲':{ko:'준비운동',en:'warm up games',ja:'ウォーミングアップ'},
-  '體能訓練':{ko:'체력 훈련',en:'fitness drills',ja:'体力トレーニング'},
-  '敏捷訓練':{ko:'민첩성 훈련',en:'agility drills',ja:'アジリティ'},
-  '基本動作':{ko:'기본동작',en:'basics',ja:'基本動作'},
-  '闖關遊戲':{ko:'게임',en:'obstacle games',ja:'ゲーム'},
-  '伸展收操':{ko:'스트레칭',en:'cool down stretching',ja:'ストレッチ'},
-  '訓練':{ko:'훈련',en:'drills',ja:'トレーニング'},
-  '前踢':{ko:'앞차기',en:'front kick',ja:'前蹴り'},
-  '側踢':{ko:'옆차기',en:'side kick',ja:'横蹴り'},
-  '下壓':{ko:'내려차기',en:'axe kick',ja:'かかと落とし'},
-  '品勢':{ko:'품새',en:'poomsae',ja:'プムセ'},
-  '對打步伐':{ko:'겨루기 스텝',en:'sparring footwork',ja:'ステップ'},
-  // 目標
-  '專注力':{ko:'집중력',en:'focus',ja:'集中力'},
-  '平衡感':{ko:'균형',en:'balance',ja:'バランス'},
-  '協調性':{ko:'협응력',en:'coordination',ja:'協調性'},
-  '反應力':{ko:'반응속도',en:'reaction',ja:'反応'},
-  '體能':{ko:'체력',en:'fitness',ja:'体力'},
-  '爆發力':{ko:'순발력',en:'power',ja:'瞬発力'},
-  '核心穩定':{ko:'코어',en:'core',ja:'体幹'},
-  '禮貌紀律':{ko:'예절',en:'discipline',ja:'礼儀'},
-  '團隊合作':{ko:'팀워크',en:'teamwork',ja:'チームワーク'},
-  '晉級考試準備':{ko:'승급심사',en:'belt test',ja:'昇級審査'},
-  // 器材
-  '角錐':{ko:'콘',en:'cones',ja:'コーン'},
-  '踢靶':{ko:'미트',en:'kicking pad',ja:'ミット'},
-  '氣墊':{ko:'에어매트',en:'air mat',ja:'エアマット'},
-  '敏捷圈':{ko:'사다리',en:'agility ladder',ja:'ラダー'},
-  '欄架':{ko:'허들',en:'hurdles',ja:'ハードル'},
-  '反應燈':{ko:'반응 라이트',en:'reaction lights',ja:'反応ライト'}
-};
-function tr(zh,lang){ if(!zh)return ''; if(lang==='zh')return zh; const e=DIC[zh]; return e&&e[lang]?e[lang]:''; }
-function langLabel(code){const f=LANGS.find(l=>l[0]===code);return f?f[1]:'中文';}
-function ageWordOf(ctx){
-  if(['幼幼班','幼兒班'].includes(ctx.cls))return '幼兒';
-  if(/國小/.test(ctx.age))return '兒童';
-  if(ctx.age==='國中')return '青少年';
   return '';
 }
-function kwForBlock(m, ctx, lang){
-  lang=lang||'zh';
-  const techGoals=['前踢','側踢','下壓','品勢','對打步伐'];
-  let tech=(m.goals||[]).find(g=>techGoals.includes(g));
-  if(!tech){
-    const stageMap={'暖身':'暖身遊戲','體能':'體能訓練','敏捷':'敏捷訓練','基本技術':'基本動作','闖關':'闖關遊戲','收操':'伸展收操'};
-    tech=stageMap[m.stage]||'訓練';
-  }
-  const eq=(m.equipment||[]).filter(Boolean)[0]||'';
-  return [tr('跆拳道',lang),tr(ageWordOf(ctx),lang),tr(tech,lang),tr(eq,lang),tr('教學',lang)].filter(Boolean).join(' ');
+function applyVariation(type){
+  if(type==='game'&&!quick.goals.includes('反應速度'))quick.goals.push('反應速度');
+  if(type==='station')quick.size='25人以上';
+  if(type==='low')quick.equip=['無器材'];
+  toast('已套用變化建議'); renderPlan();
 }
-function goalKw(ctx, lang){
-  lang=lang||'zh';
-  return [tr('跆拳道',lang),tr(ageWordOf(ctx),lang),...ctx.goals.slice(0,3).map(g=>tr(g,lang)),tr('教學',lang)].filter(Boolean).join(' ');
-}
-function ytSearch(q){return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q);}
-function googleSearch(q){return 'https://www.google.com/search?q='+encodeURIComponent(q);}
-
-/* 有 API 金鑰時，課表自動列出真實 YouTube 影片清單（瀏覽器直呼叫，支援 CORS） */
-let _liveCtx=null;
-async function loadLiveVideos(L){
-  const box=$('ytLive'); if(!box||!L)return;
-  const key=read(LS.ytkey,'');
-  if(!key){
-    box.innerHTML=`<div class="ai-hint"><b>💡 想讓課表自動列出真實影片清單？</b>到右上角 ⚙️ 設定貼上免費 YouTube API 金鑰即可。未設定時，仍可用下方一鍵搜尋。</div>`;
-    return;
-  }
-  const c=L.ctx; _liveCtx=c;
-  const q=goalKw(c, searchLang);
-  const rel=LANG_REL[searchLang]||'zh-Hant';
-  box.innerHTML=`<div class="step-hint">🔄 線上搜尋（${langLabel(searchLang)}）「${esc(q)}」中…</div>`;
-  try{
-    const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&relevanceLanguage=${rel}&safeSearch=strict&q=${encodeURIComponent(q)}&key=${encodeURIComponent(key)}`;
-    const r=await fetch(url); const d=await r.json();
-    if(d.error){
-      box.innerHTML=`<div class="ai-hint" style="background:#fef2f2;color:#b91c1c"><b>⚠️ 無法取得影片</b>${esc(d.error.message||'金鑰或配額有誤')}<br>請到 ⚙️ 檢查金鑰、或確認 YouTube Data API v3 已啟用、配額未用完。</div>`;
-      return;
-    }
-    const items=(d.items||[]).filter(it=>it.id&&it.id.videoId);
-    if(!items.length){box.innerHTML=`<div class="step-hint">查無相關影片，可改用下方一鍵搜尋。</div>`;return;}
-    window._liveVids=items;
-    box.innerHTML=`<div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍AI 線上找到的影片（${items.length}）</div>`+
-      items.map((it,i)=>{
-        const vid=it.id.videoId, s=it.snippet;
-        const thumb=(s.thumbnails&&(s.thumbnails.medium||s.thumbnails.default)||{}).url||`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
-        const wurl=`https://www.youtube.com/watch?v=${vid}`;
-        return `<div class="litem">
-          <a href="${wurl}" target="_blank"><div class="vthumb"><img src="${esc(thumb)}" onerror="this.parentNode.parentNode.style.display='none'"><span class="play">▶</span></div></a>
-          <h4>${esc(s.title)}</h4>
-          <p>${esc(s.channelTitle||'')}</p>
-          <div class="acts">
-            <button onclick="saveLiveVideo(${i})">＋ 加進影片庫</button>
-            <a href="${wurl}" target="_blank" style="flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px;font-size:12px;font-weight:700;color:var(--accent);text-align:center;text-decoration:none">▶ 觀看</a>
-          </div>
-        </div>`;
-      }).join('');
-  }catch(e){
-    box.innerHTML=`<div class="ai-hint" style="background:#fef2f2;color:#b91c1c"><b>⚠️ 連線失敗</b>${esc(e.message)}（請檢查網路）</div>`;
-  }
-}
-function saveLiveVideo(i){
-  const it=(window._liveVids||[])[i]; if(!it)return;
-  const s=it.snippet, vid=it.id.videoId, c=_liveCtx||{};
-  const thumb=(s.thumbnails&&(s.thumbnails.medium||s.thumbnails.default)||{}).url||`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
-  const vids=read(LS.vid,[]);
-  if(vids.some(v=>v.url.includes(vid))){toast('這支影片已在影片庫');return;}
-  const obj={id:uid(),title:s.title,url:`https://www.youtube.com/watch?v=${vid}`,thumb,
-    ages:c.age?[c.age]:[],classes:c.cls?[c.cls]:[],equipment:c.equip||[],goals:c.goals||[],
-    stage:'基本技術',level:'中等',note:'AI 線上搜尋收藏'};
-  vids.unshift(obj);
-  write(LS.vid,vids);cloudUpsert('videos',obj);
-  toast('已加進影片庫');
-}
-
-let CURRENT=null;
-
-function generateLesson(){
-  if(!sel.cls){toast('請先選擇班級');go('plan');return;}
-  if(!sel.age){toast('請選擇年齡');return;}
-  if(!sel.size){toast('請選擇人數');return;}
-  if(sel.goals.length===0){toast('請至少選一個課程目標');return;}
-  const ctx={cls:sel.cls,age:sel.age,size:sel.size,goals:[...sel.goals],equip:[...sel.equip],intensity:sel.intensity};
-  CURRENT=buildLessonObject(ctx);
-  saveHistory(CURRENT);
-  write(LS.cur, CURRENT);
-  renderLesson();
-  renderAssistTasks();
-  $('parentNoLesson').classList.add('hidden');
-  $('parentReady').classList.remove('hidden');
-  $('parentOut').innerHTML='';
-  window.scrollTo(0,0);
-}
-
-function renderLesson(){
-  const L=CURRENT; if(!L)return;
-  const c=L.ctx;
-  const total = ['幼幼班','幼兒班'].includes(c.cls)?'90 分鐘':'60 分鐘';
-  let html=`
-  <div class="lesson-head">
-    <h2>📋 今日課表 · ${c.cls}</h2>
-    <div class="meta">
-      <span>👶 <b>${c.age}</b></span><span>👥 <b>${c.size}</b></span>
-      <span>⏱️ <b>${total}</b></span><span>🔥 <b>${c.intensity}</b></span>
-    </div>
-    <div class="meta">🎯 ${c.goals.join('、')}</div>
-    ${c.equip.length?`<div class="meta">🧰 ${c.equip.join('、')}</div>`:''}
-  </div>`;
-
-  L.blocks.forEach((b,i)=>{
-    const m=b.m;
-    html+=`<div class="block ${i===0?'open':''}" onclick="this.classList.toggle('open')">
-      <div class="bhead">
-        <span class="time">${b.seg.t}</span>
-        <span class="bname">${b.seg.label}</span>
-        <span class="arrow">▶</span>
-      </div>
-      <div class="body" onclick="event.stopPropagation()">`;
-    if(m){
-      html+=`<div class="row"><span class="k">📌 課程名稱</span>${m.name}</div>`;
-      if((m.equipment||[]).filter(Boolean).length) html+=`<div class="row"><span class="k">🧰 使用器材</span>${m.equipment.map(e=>`<span class="eq">${e}</span>`).join('')}</div>`;
-      html+=`<div class="row"><span class="k">📝 課程內容</span>${m.content}</div>`;
-      html+=`<div class="row"><span class="k">🎯 教學目標</span>${(m.goals||[]).join('、')}</div>`;
-      html+=`<div class="row"><span class="k">⭐ 教學重點</span>${m.keypoints}</div>`;
-      html+=`<div class="row cmd"><span class="k">🗣️ 教練口令</span>${m.commands}</div>`;
-      html+=`<div class="row assist"><span class="k">🙌 助教任務</span>${m.assistant}</div>`;
-      html+=`<div class="row safe"><span class="k">⚠️ 安全提醒</span>${m.safety||'—'}</div>`;
-      if(m.variations)html+=`<div class="row"><span class="k">🔁 難度調整</span>${m.variations}</div>`;
-      const pf=parentFriendly(m.goals||[]);
-      html+=`<div class="row parent"><span class="k">👪 家長看得懂的說法</span>這段在練「${m.name}」，幫助孩子${pf[0]||'打好基礎'}。</div>`;
-      if(m.thumb)html+=`<a href="${m.video||'#'}" target="_blank" onclick="event.stopPropagation()" style="display:block;max-width:240px;margin-top:6px"><div class="vthumb"><img src="${escAttr(m.thumb)}" onerror="this.parentNode.parentNode.style.display='none'"><span class="play">▶</span></div></a>`;
-      else if(m.video)html+=`<a class="vid-link" href="${m.video}" target="_blank" onclick="event.stopPropagation()">🎬 參考影片</a>`;
-    }else{
-      html+=`<div class="row" style="color:#94a3b8">此段尚無對應素材，請到「素材庫」新增更多教案。</div>`;
-    }
-    html+=`</div></div>`;
-  });
-
-  // 推薦影片
-  if(L.recVideos.length){
-    html+=`<div class="sec-h" style="margin-top:18px">🎬 推薦教學影片<span class="line"></span></div>`;
-    L.recVideos.forEach(v=>{
-      html+=`<div class="litem">
-        ${v.thumb?`<a href="${v.url}" target="_blank" onclick="event.stopPropagation()"><div class="vthumb"><img src="${escAttr(v.thumb)}" onerror="this.parentNode.style.display='none'"><span class="play">▶</span></div></a>`:''}
-        <h4>${v.title}</h4>
-        <div class="tags"><span class="tag b">${v.stage}</span><span class="tag">${v.level}</span>${(v.goals||[]).map(g=>`<span class="tag g">${g}</span>`).join('')}</div>
-        <a class="vid-link" href="${v.url}" target="_blank">▶ 觀看影片</a>
-      </div>`;
-    });
-  }
-
-  // 🔎 線上找教學影片靈感（多語言）
-  html+=`<div id="searchSec"></div>`;
-
-  html+=`<div style="height:6px"></div>
-    <div class="btn-row">
-      <button class="btn sec sm" onclick="go('parent')">💬 產生家長回饋</button>
-      <button class="btn sec sm" onclick="go('assist')">🙌 助教任務</button>
+function renderAI(){
+  $('page-plan').innerHTML=`
+    <button class="btn ghost sm" onclick="screen='home';renderPlan()" style="width:auto;margin-bottom:10px">‹ 回首頁</button>
+    <div class="card"><h2 style="margin:0 0 6px">AI 智能備課</h2><p class="muted">用文字描述今天狀況，系統會轉成可上課的流程。</p>
+      <textarea class="field" id="aiText" placeholder="例：今天下雨，人很多，小場地，基礎班孩子精神太好，只有踢靶和角錐，想練專注力和基本踢擊"></textarea>
+      <div style="height:10px"></div><button class="btn blue" onclick="aiGenerate()">產生最適課表</button>
     </div>`;
-  html+=`<div style="height:8px"></div>
-    <div class="btn-row">
-      <button class="btn sec sm" onclick="printLesson()">🖨️ 列印 / 匯出 PDF</button>
-      <button class="btn dark sm" onclick="resetWizard()">↺ 重新備課</button>
-    </div>`;
-
-  $('planResult').innerHTML=html;
-  $('planResult').classList.remove('hidden');
-  $('planWizard').classList.add('hidden');
-  renderSearchSection(L);
 }
-
-/* 線上找影片區（多語言）：可切換語言，套用到各段技術與自動清單 */
-let _searchLesson=null;
-function renderSearchSection(L){
-  _searchLesson=L;
-  const box=$('searchSec'); if(!box||!L)return;
-  const c=L.ctx;
-  box.innerHTML=`<div class="sec-h" style="margin-top:18px">🔎 線上找教學影片靈感<span class="line"></span></div>
-    <div class="card" style="padding:14px">
-      <div id="ytLive"></div>
-      <p class="step-hint" style="margin:0 0 10px">支援中文／韓文／英文／日文搜尋——韓文、英文的兒童跆拳道影片量很大，能參考的素材更多。找到喜歡的複製連結到「影片庫」即可收藏。</p>
-      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍依今日目標（各語言都幫你搜，一鍵開 YouTube）</div>
-      <div class="opts" style="margin-bottom:12px">
-        ${LANGS.map(([code,label])=>`<a class="opt alt" href="${ytSearch(goalKw(c,code))}" target="_blank">▶ ${label}</a>`).join('')}
-        <a class="opt" href="${googleSearch(goalKw(c,'zh'))}" target="_blank">🔎 Google</a>
-      </div>
-      <div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px">▍自動影片清單語言</div>
-      <div class="opts">
-        ${LANGS.map(([code,label])=>`<span class="opt ${searchLang===code?'sel':''}" onclick="setSearchLang('${code}')">${label}</span>`).join('')}
-      </div>
-    </div>`;
-  loadLiveVideos(L);
-}
-function setSearchLang(code){searchLang=code;write(LS.lang,code);if(_searchLesson)renderSearchSection(_searchLesson);}
-
-function resetWizard(){
-  $('planResult').classList.add('hidden');
-  $('planWizard').classList.remove('hidden');
-  window.scrollTo(0,0);
-}
-
-/* ---------- 助教任務 ---------- */
-function renderAssistTasks(){
-  const L=CURRENT;
-  const el=$('assistTasks');
-  if(!L){el.innerHTML='<div class="empty"><span class="em">🗒️</span>尚未產生今日課表</div>';return;}
-  let h='';
-  L.blocks.forEach(b=>{
-    if(!b.m)return;
-    h+=`<div class="litem">
-      <h4>${b.seg.t} · ${b.m.name}</h4>
-      <p class="row assist" style="margin:6px 0">🙌 ${b.m.assistant}</p>
-      <p class="row safe" style="margin:6px 0">⚠️ ${b.m.safety||'—'}</p>
-    </div>`;
-  });
-  el.innerHTML=h;
-}
-
-/* ============================================================
-   AI 智能備課（規則式 NLP）
-   ============================================================ */
 function aiGenerate(){
-  const txt=($('aiInput').value||'').trim();
-  if(!txt){toast('請先描述今天的狀況');return;}
-  const t=txt;
-  // 班級/年齡
-  let cls='基礎班', age='國小低年級';
-  if(/幼幼/.test(t)){cls='幼幼班';age='3-4歲';}
-  else if(/幼兒|幼童|小小孩|3歲|4歲|5歲|6歲/.test(t)){cls='幼兒班';age='5-6歲';}
-  else if(/選手/.test(t)){cls='選手班';age='國小高年級';}
-  else if(/品勢/.test(t)){cls='品勢班';age='國小中年級';}
-  else if(/黑帶/.test(t)){cls='黑帶班';age='國中';}
-  else if(/成人|大人/.test(t)){cls='健身班';age='成人';}
-  else if(/暑期|夏令/.test(t)){cls='暑期班';age='國小低年級';}
-  if(/國中/.test(t))age='國中';
-  if(/高年級/.test(t))age='國小高年級';
-  if(/中年級/.test(t))age='國小中年級';
-  // 人數
-  let size='6-10人';
-  if(/人很多|很多人|人數多|爆滿|超多|16|十六/.test(t))size='16人以上';
-  else if(/人少|很少|少數|沒幾個|1對1|一對一|1-5|五人/.test(t))size='1-5人';
-  else if(/11|十一|十幾/.test(t))size='11-15人';
-  // 器材偵測
-  const equipMap={'氣墊':/氣墊/,'敏捷圈':/敏捷圈|圈/,'角錐':/角錐|三角錐|錐/,'欄架':/欄架/,'欄杆':/欄杆/,'軟墊':/軟墊|墊子/,'滾筒':/滾筒/,'反應燈':/反應燈|燈/,'踢靶':/踢靶|靶/,'跳繩機':/跳繩/};
-  let equip=Object.keys(equipMap).filter(k=>equipMap[k].test(t));
-  // 目標偵測
-  const goalMap={'專注力':/專注|分心|靜不下|躁動/,'平衡感':/平衡/,'協調性':/協調/,'反應力':/反應/,'體能':/體能|放電|精神好|很有活力|能量/,'爆發力':/爆發|力量/,'核心穩定':/核心/,'基本動作':/基本|基礎動作/,'前踢':/前踢/,'下壓':/下壓/,'側踢':/側踢/,'品勢':/品勢/,'對打步伐':/步伐|對打/,'禮貌紀律':/紀律|禮貌|秩序|不聽話/,'團隊合作':/團隊|合作/,'晉級考試準備':/考試|晉級|考帶/};
-  let goals=Object.keys(goalMap).filter(k=>goalMap[k].test(t));
-  // 場地小、人多 → 偏控制型/紀律/專注；精神好 → 高活動量放電
-  let intensity='一般型';
-  if(/精神好|很有活力|放電|活潑|很多人|爆滿|能量/.test(t))intensity='高活動量';
-  if(/下雨|室內|場地小|空間小|地方小/.test(t)){
-    if(!goals.includes('專注力'))goals.push('專注力');
-    if(!goals.includes('核心穩定'))goals.push('核心穩定');
-  }
-  if(/考試|晉級|考帶/.test(t))intensity='考試準備';
-  if(goals.length===0)goals=['基本動作','體能'];
-  if(equip.length===0)equip=['角錐']; // 預設
-
-  const ctx={cls,age,size,goals,equip,intensity};
-  CURRENT=buildLessonObject(ctx);
-  saveHistory(CURRENT);
-  write(LS.cur,CURRENT);
-  $('parentNoLesson').classList.add('hidden');
-  $('parentReady').classList.remove('hidden');
-  $('parentOut').innerHTML='';
-  renderAssistTasks();
-
-  // 顯示 AI 解讀 + 課表
-  let interp=`<div class="card" style="border-left:5px solid var(--accent)">
-    <div class="step-title" style="color:var(--accent)">🤖 AI 解讀你的狀況</div>
-    <p class="step-hint" style="margin:0">班級：<b>${cls}</b>｜年齡：<b>${age}</b>｜人數：<b>${size}</b><br>
-    目標：<b>${goals.join('、')}</b><br>器材：<b>${equip.join('、')}</b>｜強度：<b>${intensity}</b></p>
-  </div>`;
-  $('aiResult').innerHTML=interp;
-  // 在 plan 區渲染並切過去
-  renderLesson();
-  go('plan');
-  window.scrollTo(0,0);
-  toast('已依你的描述產生課表');
+  const t=($('aiText').value||'').trim(); if(!t){toast('請先描述今天狀況');return}
+  const ctx={
+    cls:/幼/.test(t)?'幼幼班':/選手/.test(t)?'選手班':/品勢/.test(t)?'品勢班':/黑帶/.test(t)?'黑帶班':/暑|集訓/.test(t)?'暑期集訓':'基礎班',
+    age:/國中/.test(t)?'國中':/高中|成人|大人/.test(t)?'高中以上':/高年級/.test(t)?'國小高年級':/幼|3|4|5|6/.test(t)?'3-6歲':'國小低年級',
+    size:/人多|很多|爆滿|25/.test(t)?'25人以上':/少|一對一|不到8/.test(t)?'少於8人':/15|二十|20/.test(t)?'15-25人':'8-15人',
+    place:/下雨|室內/.test(t)?'下雨室內':/小場/.test(t)?'小場地':/大場/.test(t)?'大場地':'中場地',
+    goals:GOALS.filter(g=>new RegExp(g.replace('基本踢擊','基本|踢').replace('反應速度','反應')).test(t)),
+    equip:EQUIP.filter(e=>new RegExp(e).test(t))
+  };
+  if(/精神|放電|體能/.test(t)&&!ctx.goals.includes('體能'))ctx.goals.push('體能');
+  if(!ctx.goals.length)ctx.goals=['專注力','基本踢擊'];
+  if(!ctx.equip.length)ctx.equip=/不足|沒有|無器材/.test(t)?['無器材']:['踢靶','角錐'];
+  CURRENT=buildLesson(ctx,'AI 智能備課'); persistCurrent(); screen='result'; renderPlan(); window.scrollTo(0,0);
+}
+function renderStandard(){
+  const ctx={cls:'基礎班',age:'國小低年級',size:'8-15人',place:'中場地',goals:['基本踢擊','體能'],equip:['踢靶','角錐']};
+  CURRENT=buildLesson(ctx,'標準課表'); persistCurrent(); screen='result'; renderPlan();
 }
 
-/* ============================================================
-   家長回饋產生器
-   ============================================================ */
-function genParent(){
-  const L=CURRENT; if(!L){toast('請先產生課表');return;}
-  const c=L.ctx;
-  const equipUsed=[...new Set(L.blocks.flatMap(b=>b.m?(b.m.equipment||[]):[]))].filter(Boolean);
-  const abilities=parentFriendly(c.goals);
-  const date=new Date(); const ds=`${date.getMonth()+1}/${date.getDate()}`;
-  const names=L.blocks.filter(b=>b.m).map(b=>b.m.name);
-
-  const txt =
-`🥋【${ds} ${c.cls} 今日訓練回饋】
-
-各位家長好！今天孩子們表現很棒 👏
-
-📌 今日訓練重點
-${names.slice(0,4).map(n=>'・'+n).join('\n')}
-
-🧰 使用器材
-${equipUsed.length?equipUsed.join('、'):'徒手訓練'}
-
-💪 今天培養的能力
-${abilities.map(a=>'✅ '+a).join('\n')}
-
-😊 課堂表現
-孩子們專注參與、勇於嘗試，遇到挑戰也願意再試一次，非常值得鼓勵！
-
-🥋 跆拳道教育價值
-我們不只教踢腿，更培養孩子的禮貌、紀律、專注與自信。
-「先學會做人，再學會武術。」
-
-🌟 給孩子的鼓勵
-每一次練習都是進步，回家可以請孩子示範今天學到的動作，給他一個大大的讚！
-
-下次上課見 👊`;
-
-  $('parentOut').innerHTML=
-   `<div class="feedback-box" id="fbText">${txt.replace(/</g,'&lt;')}</div>
-    <div style="height:10px"></div>
-    <div class="btn-row">
-      <button class="btn sm" onclick="copyFb()">📋 複製內容</button>
-      <button class="btn sec sm" onclick="genParent()">🔄 重新產生</button>
-    </div>`;
-  window._fb=txt;
+function buildLesson(ctx,mode){
+  const noEquip=ctx.equip.includes('無器材');
+  const station=ctx.size==='25人以上';
+  const indoor=ctx.place==='下雨室內'||ctx.place==='小場地';
+  const blocks=[
+    {time:'0-10分',name:'集合暖身與今日目標',focus:'收心、暖身、說明規則',content:`整隊行禮，宣布今日目標：${ctx.goals.join('、')}。接著做關節活動、原地快腳與反應口令。`,coach:'先讓孩子知道今天要練什麼，口令短、示範大。',assistant:'協助排隊、確認鞋帶與場地淨空。',safe:'暖身由慢到快，保持左右一個手臂距離。',alt:'幼兒可改成動物模仿暖身。'},
+    {time:'10-25分',name:station?'分站循環啟動':'反應遊戲啟動',focus:'提升參與感與反應',content:station?'分成 3-4 站輪轉：角錐折返、敏捷步、踢靶或徒手踢擊。':'紅綠燈、方向口令、角錐折返，讓孩子先把注意力集中。',coach:'規則一次只講一個，先試跑一輪再正式開始。',assistant:'站在隊伍側邊控間距，提醒等待孩子看前方。',safe:'轉彎處放慢，禁止推擠。',alt:indoor?'室內改原地步伐與聽口令反應。':'人少可改個人計時挑戰。'},
+    {time:'25-45分',name:ctx.goals.includes('品勢')?'品勢八拍分解':ctx.goals.includes('對練')?'對練步伐與距離':'基本踢擊主課',focus:ctx.goals[0],content:noEquip?'用地線或空氣目標練提膝、出腿、收腳、落地。':'踢靶分解：提膝、踢出、收腳、落地，完成後加入連續踢靶。',coach:'先修大方向，再修細節；每個孩子至少得到一次具體回饋。',assistant:noEquip?'協助站位與個別提醒。':'持靶調整高度，讓每個孩子踢得到。',safe:'踢擊方向不面向同伴，等前一位離開再開始。',alt:'進階班加入移動踢或組合動作。'},
+    {time:'45-55分',name:'應用挑戰',focus:'把主課變成可執行任務',content:station?'各站最後一輪加入小隊積分。':'闖關任務：完成指定動作後前進，最後做團隊挑戰。',coach:'用任務感提高投入，但分數不是唯一重點。',assistant:'記錄分數、鼓勵落後組、整理器材。',safe:'闖關動線單向，入口出口分開。',alt:'低器材版改成徒手動作賓果。'},
+    {time:'55-60分',name:'收操與回饋',focus:'安全收尾與家長可理解的成果',content:'伸展大腿、髖部、肩頸，請孩子說出今天學到的一件事。',coach:'用正向語句收尾，點名 1-2 個具體進步。',assistant:'收器材、協助喝水、整理課後回饋重點。',safe:'伸展不彈震，不壓關節。',alt:'時間不足也至少做 2 分鐘呼吸與伸展。'}
+  ];
+  const lesson={id:uid(),date:todayISO(),mode,cls:ctx.cls,age:ctx.age,size:ctx.size,place:ctx.place,goals:[...ctx.goals],equip:[...ctx.equip],intensity:ctx.goals.includes('體能')?'中高':'中等',total:'60 分鐘',blocks};
+  lesson.parent=makeParentVersions(lesson);
+  return lesson;
 }
-function copyFb(){
-  const t=window._fb||'';
-  navigator.clipboard?.writeText(t).then(()=>toast('已複製，貼到 LINE 群組即可')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('已複製');
-  });
+function goScore(L){
+  const checks=[
+    L.goals.length>0, L.blocks.some(b=>/暖身/.test(b.name)), L.blocks.some(b=>/主課|踢擊|品勢|對練/.test(b.name)), L.blocks.some(b=>/收操/.test(b.name)),
+    !!L.age, !!L.size, !!L.place, L.equip.length>0, L.blocks.every(b=>b.safe), L.blocks.every(b=>b.assistant), !!L.parent
+  ];
+  let score=Math.min(10,Math.round(checks.filter(Boolean).length/checks.length*10));
+  const tips=[];
+  if(!L.blocks.some(b=>/收操/.test(b.name)))tips.push('這堂課缺少收操');
+  if(L.size==='25人以上')tips.push('人數超過 25 人，建議改成分站循環');
+  if(L.equip.includes('無器材'))tips.push('器材不足，建議加入無器材替代方案');
+  if(!L.parent)tips.push('缺少家長回饋文字');
+  return {score,tips};
 }
-
-/* ============================================================
-   歷史課表
-   ============================================================ */
-function saveHistory(L){
-  const h=read(LS.hist,[]);
-  h.unshift({id:L.id,date:L.date,mode:'wizard',cls:L.ctx.cls,age:L.ctx.age,goals:L.ctx.goals,equip:L.ctx.equip,intensity:L.ctx.intensity,blocks:L.blocks});
-  write(LS.hist, h.slice(0,300));
+function renderResult(){
+  if(!CURRENT){screen='home';renderPlan();return}
+  const s=goScore(CURRENT);
+  $('page-plan').innerHTML=`
+    <div class="result-top">
+      <h2>今日課表總覽</h2>
+      <span class="score-badge">/go ${s.score} / 10</span>
+      <div class="metric-grid">
+        <div class="metric"><span>班級</span><b>${CURRENT.cls}</b></div><div class="metric"><span>總時間</span><b>${CURRENT.total}</b></div>
+        <div class="metric"><span>課程目標</span><b>${CURRENT.goals.join('、')}</b></div><div class="metric"><span>強度</span><b>${CURRENT.intensity}</b></div>
+        <div class="metric"><span>器材</span><b>${CURRENT.equip.join('、')}</b></div><div class="metric"><span>場地</span><b>${CURRENT.place}</b></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">/go 實用性檢查</div>
+      <div class="muted">檢查目標、暖身、主課、收操、年齡、人數、場地、器材、安全、助教與家長回饋。</div>
+      ${s.score<8?`<div class="alert" style="margin-top:10px"><b>改善建議</b>${s.tips.map(x=>`<div>${x}</div>`).join('')}</div>`:`<div class="detail alt" style="margin-top:10px"><b>可直接上課</b>流程、任務與課後文字都已準備好。</div>`}
+    </div>
+    <div class="action-dock"><div class="btn-grid two">
+      <button class="btn sm" onclick="copyText(fullLessonText())">一鍵複製完整課表</button>
+      <button class="btn sm ghost" onclick="go('after')">產生家長回饋</button>
+      <button class="btn sm ghost" onclick="go('after')">產生助教任務</button>
+      <button class="btn sm green" onclick="saveToHistory(true)">儲存到歷史</button>
+      <button class="btn sm dark" onclick="regenerateVariation()">重新產生變化版</button>
+    </div></div>
+    ${CURRENT.blocks.map((b,i)=>`
+      <details class="card lesson-card" ${i===0?'open':''}>
+        <summary><span class="time-badge">${b.time}</span><h3>${b.name}</h3><span class="chev">›</span></summary>
+        <div class="detail-grid">
+          <div class="detail"><b>教學內容</b>${b.content}</div>
+          <div class="detail"><b>教練重點</b>${b.coach}</div>
+          <div class="detail assist"><b>助教任務</b>${b.assistant}</div>
+          <div class="detail safe"><b>安全提醒</b>${b.safe}</div>
+          <div class="detail alt"><b>替代方案</b>${b.alt}</div>
+        </div>
+      </details>`).join('')}`;
 }
-function saveHistoryStd(S){
-  const h=read(LS.hist,[]);
-  // 同一張標準課表多次儲存時更新而非重複
-  const i=h.findIndex(x=>x.id===S.id);
-  const rec={id:S.id,date:S.date,mode:'standard',totalMin:segSum(S),segments:S.segments};
+function persistCurrent(){write(LS.current,CURRENT);saveToHistory(false)}
+function saveToHistory(show){
+  if(!CURRENT)return;
+  const h=read(LS.history,[]);
+  const rec={...CURRENT};
+  const i=h.findIndex(x=>x.id===rec.id);
   if(i>=0)h[i]=rec; else h.unshift(rec);
-  write(LS.hist, h.slice(0,300));
+  write(LS.history,h.slice(0,300));
+  if(show)toast('已儲存到歷史');
 }
-let histFilter='all';
-function setHistFilter(f){histFilter=f;[...$('histSeg').children].forEach(b=>b.classList.toggle('on',b.dataset.f===f));renderHist();}
-function inRange(dateStr,f){
-  const d=new Date(dateStr), now=new Date();
-  if(f==='all')return true;
-  if(f==='today')return d.toDateString()===now.toDateString();
-  if(f==='week'){const s=new Date(now);s.setDate(now.getDate()-now.getDay());s.setHours(0,0,0,0);return d>=s;}
-  if(f==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-  return true;
+function regenerateVariation(){
+  const ctx={cls:CURRENT.cls,age:CURRENT.age,size:CURRENT.size==='25人以上'?'15-25人':'25人以上',place:CURRENT.place,goals:[...CURRENT.goals],equip:CURRENT.equip.includes('無器材')?['踢靶','角錐']:['無器材']};
+  CURRENT=buildLesson(ctx,'變化版'); persistCurrent(); renderPlan(); toast('已產生變化版');
 }
-function renderHist(){
-  const h=read(LS.hist,[]).filter(x=>inRange(x.date,histFilter));
-  const el=$('histList');
-  if(!h.length){el.innerHTML='<div class="empty"><span class="em">🗓️</span>這個區間還沒有課表</div>';return;}
-  el.innerHTML=h.map(x=>{
-    const d=new Date(x.date);
-    const isStd=x.mode==='standard';
-    const title=isStd?`🥋 標準課表 · ${x.totalMin}分鐘`:`${x.cls} · ${x.age}`;
-    const sub=isStd?`${(x.segments||[]).map(s=>s.name).join(' → ')}`:`${(x.goals||[]).join('、')} ｜ ${x.intensity||''}`;
-    return `<div class="histcard">
-      <div class="d"><div class="dd">${d.getDate()}</div><div class="mm">${d.getMonth()+1}月</div></div>
-      <div class="info" onclick="viewHist('${x.id}')">
-        <h4>${title}</h4>
-        <p>${sub}</p>
-      </div>
-      <button class="x" onclick="delHist('${x.id}')">🗑️</button>
-    </div>`;
-  }).join('');
+
+function makeParentVersions(L){
+  const short=`【${L.cls} 今日回饋】今天重點是${L.goals.join('、')}。孩子們完成暖身、主課挑戰與收操，練習聽口令、守規則與勇敢嘗試。回家可請孩子示範今天最有成就感的一個動作。`;
+  const personal=`今天孩子在${L.goals[0]}練習中很願意嘗試，尤其能跟著口令完成動作。建議回家給他一個具體稱讚，例如「你今天有把動作做完，真的很棒」。`;
+  const internal=`${L.cls}｜${L.total}｜目標：${L.goals.join('、')}｜場地：${L.place}｜器材：${L.equip.join('、')}。觀察：注意排隊距離與主課踢擊品質，下次可延伸${L.goals.includes('基本踢擊')?'步伐接踢擊':'遊戲化反應'}。`;
+  return {short,personal,internal};
 }
-function viewHist(id){
-  const x=read(LS.hist,[]).find(h=>h.id===id); if(!x)return;
+function fullLessonText(){
+  if(!CURRENT)return '';
+  return `CoachPro 今日課表\n班級：${CURRENT.cls}\n時間：${CURRENT.total}\n目標：${CURRENT.goals.join('、')}\n器材：${CURRENT.equip.join('、')}\n\n`+
+    CURRENT.blocks.map(b=>`${b.time} ${b.name}\n內容：${b.content}\n教練重點：${b.coach}\n助教任務：${b.assistant}\n安全提醒：${b.safe}\n替代方案：${b.alt}`).join('\n\n');
+}
+
+function renderMaterial(){
+  const mats=read(LS.materials,[]), vids=read(LS.videos,[]);
+  $('page-material').innerHTML=`
+    <div class="section-title">素材中心</div>
+    <div class="seg"><button class="${materialTab==='lesson'?'on':''}" onclick="materialTab='lesson';renderMaterial()">教案素材</button><button class="${materialTab==='video'?'on':''}" onclick="materialTab='video';renderMaterial()">影片靈感</button><button class="${materialTab==='tech'?'on':''}" onclick="materialTab='tech';renderMaterial()">技術速查</button></div>
+    ${materialTab==='lesson'?renderMaterialList(mats):materialTab==='video'?renderVideoList(vids):renderTechList()}`;
+}
+function renderMaterialList(items){
+  return `<button class="btn ghost sm" onclick="openMaterialModal()" style="margin-bottom:12px">＋ 新增教案素材</button>`+
+    (items.length?items.map(m=>`<div class="list-card"><h3>${m.name}</h3><p class="muted">${m.content}</p><div class="tags">${(m.goals||[]).map(g=>`<span class="tag green">${g}</span>`).join('')}${(m.equipment||[]).map(e=>`<span class="tag blue">${e}</span>`).join('')}</div><div class="btn-row"><button class="btn sm ghost" onclick="copyText('${esc((m.content||'').replace(/'/g,'\\\''))}')">複製玩法</button><button class="btn sm ghost" onclick="editMaterial('${m.id}')">編輯</button></div></div>`).join(''):`<div class="empty"><b>尚無教案素材</b>點上方新增，之後備課會更快。</div>`);
+}
+function renderVideoList(items){
+  return `<button class="btn ghost sm" onclick="openVideoModal()" style="margin-bottom:12px">＋ 新增教學影片</button>`+
+    (items.length?items.map(v=>`<div class="list-card"><h3>${v.title}</h3><div class="tags">${(v.goals||[]).map(g=>`<span class="tag green">${g}</span>`).join('')}</div><a class="btn sm blue" style="display:block;text-align:center;text-decoration:none" href="${v.url}" target="_blank">觀看影片</a></div>`).join(''):`<div class="empty"><b>尚無影片</b>可收藏 YouTube 靈感連結。</div>`);
+}
+function renderTechList(){
+  const tech=['前踢：提膝、踢出、收腳、落地','旋踢：轉髖、抬膝、腳背擊中','下壓：抬腿上提、腳跟下壓','品勢：方向、站姿、視線、節奏','對練步伐：進退、側移、距離控制'];
+  return tech.map(t=>`<div class="list-card"><h3>${t.split('：')[0]}</h3><p class="muted">${t.split('：')[1]}</p><button class="btn sm ghost" onclick="copyText('${t}')">複製重點</button></div>`).join('');
+}
+
+function renderAfter(){
+  if(!CURRENT){$('page-after').innerHTML=`<div class="empty"><b>尚未產生今日課表</b>先到「備課」產生課表，這裡會出現家長回饋與助教任務。</div>`;return}
+  const p=CURRENT.parent;
+  $('page-after').innerHTML=`
+    <div class="section-title">課後工具</div>
+    <div class="card"><h3 style="margin:0 0 8px">家長回饋</h3>
+      ${feedbackCard('LINE 群組簡短版',p.short)}
+      ${feedbackCard('個別孩子鼓勵版',p.personal)}
+      ${feedbackCard('教練內部紀錄版',p.internal)}
+    </div>
+    <div class="card"><h3 style="margin:0 0 8px">助教任務</h3>${CURRENT.blocks.map(b=>`<div class="mini-card"><b>${b.time} ${b.name}</b><div class="muted">${b.assistant}</div></div>`).join('')}<button class="btn sm ghost" onclick="copyText(assistantText())">一鍵複製 LINE 文字</button></div>`;
+}
+function feedbackCard(title,text){return `<div class="copy-row" style="margin-bottom:10px"><div><b>${title}</b><div class="copy-box">${esc(text)}</div></div><button class="btn sm" onclick="copyText('${esc(text).replace(/'/g,'\\\'').replace(/\n/g,'\\n')}')">複製</button></div>`}
+function assistantText(){return CURRENT.blocks.map(b=>`${b.time} ${b.name}\n${b.assistant}\n安全：${b.safe}`).join('\n\n')}
+
+function renderRecords(){
+  const h=read(LS.history,[]).map(normalizeHistory).filter(Boolean).filter(x=>(x.cls+x.goals.join('、')+x.mode).includes(histQuery));
+  $('page-records').innerHTML=`
+    <div class="section-title">紀錄</div>
+    <input class="field" placeholder="搜尋班級、目標、課表類型" value="${esc(histQuery)}" oninput="histQuery=this.value;renderRecords()" style="margin-bottom:12px">
+    ${h.length?h.map(x=>`<div class="list-card"><h3>${x.cls} · ${x.mode}</h3><p class="muted">${new Date(x.date).toLocaleString('zh-TW')}｜${x.goals.join('、')}</p><div class="btn-row"><button class="btn sm ghost" onclick="reuseLesson('${x.id}')">沿用課表</button><button class="btn sm dark" onclick="reuseLesson('${x.id}',true)">變化版本</button></div></div>`).join(''):`<div class="empty"><b>尚未產生今日課表</b>產生並儲存後，這裡可以搜尋、沿用與微調。</div>`}`;
+}
+function reuseLesson(id,variation){
+  const x=read(LS.history,[]).map(normalizeHistory).find(r=>r.id===id); if(!x)return;
+  CURRENT=variation?buildLesson({cls:x.cls,age:x.age,size:x.size==='25人以上'?'15-25人':'25人以上',place:x.place,goals:x.goals,equip:x.equip.includes('無器材')?['踢靶','角錐']:['無器材']},'歷史變化版'):{...x,id:uid(),date:todayISO(),mode:'沿用課表'};
+  persistCurrent(); screen='result'; go('plan'); toast(variation?'已產生歷史變化版':'已沿用歷史課表');
+}
+
+function normalizeHistory(x){
+  if(!x)return null;
+  if(x.cls && Array.isArray(x.goals))return x;
+  if(x.ctx){
+    return {...buildLesson({
+      cls:x.ctx.cls||'基礎班',
+      age:x.ctx.age||'國小低年級',
+      size:SIZES.includes(x.ctx.size)?x.ctx.size:'8-15人',
+      place:x.ctx.place||'中場地',
+      goals:(x.ctx.goals||['基本踢擊']).map(g=>g==='基本動作'||g==='前踢'?'基本踢擊':g).filter(g=>GOALS.includes(g)),
+      equip:(x.ctx.equip||['踢靶']).map(e=>EQUIP.includes(e)?e:'無器材')
+    }, x.mode||'舊課表'), id:x.id||uid(), date:x.date||todayISO()};
+  }
   if(x.mode==='standard'){
-    STD={id:x.id,date:x.date,segments:JSON.parse(JSON.stringify(x.segments))};
-    write(LS.std,STD); renderStandard(); go('plan'); window.scrollTo(0,0); return;
+    return buildLesson({cls:'基礎班',age:'國小低年級',size:'8-15人',place:'中場地',goals:['基本踢擊','體能'],equip:['踢靶','角錐']},'標準課表');
   }
-  CURRENT={id:x.id,date:x.date,ctx:{cls:x.cls,age:x.age,size:'-',goals:x.goals,equip:x.equip,intensity:x.intensity},blocks:x.blocks,recVideos:[]};
-  renderLesson();renderAssistTasks();
-  $('parentNoLesson').classList.add('hidden');$('parentReady').classList.remove('hidden');$('parentOut').innerHTML='';
-  go('plan');window.scrollTo(0,0);
-}
-function delHist(id){
-  if(!confirm('刪除這筆課表紀錄？'))return;
-  write(LS.hist, read(LS.hist,[]).filter(h=>h.id!==id));
-  renderHist();toast('已刪除');
+  return null;
 }
 
-/* ============================================================
-   素材庫 CRUD
-   ============================================================ */
-function renderLib(){
-  const q=($('libSearch').value||'').toLowerCase();
-  let mats=read(LS.mat,[]);
-  if(q)mats=mats.filter(m=>(m.name+ (m.equipment||[]).join()+(m.goals||[]).join()+(m.classes||[]).join()).toLowerCase().includes(q));
-  const el=$('libList');
-  if(!mats.length){el.innerHTML='<div class="empty"><span class="em">📚</span>沒有符合的素材，點上方按鈕新增</div>';return;}
-  el.innerHTML=mats.map(m=>`
-    <div class="litem">
-      <h4>${m.name} <span style="font-size:11px;color:var(--sub)">· ${m.stage}｜${m.time||''}</span></h4>
-      <div class="tags">
-        ${(m.classes||[]).slice(0,3).map(c=>`<span class="tag">${c}</span>`).join('')}
-        ${(m.goals||[]).slice(0,3).map(g=>`<span class="tag g">${g}</span>`).join('')}
-        ${(m.equipment||[]).filter(Boolean).map(e=>`<span class="tag b">${e}</span>`).join('')}
-      </div>
-      <p>${(m.content||'').slice(0,60)}${(m.content||'').length>60?'…':''}</p>
-      <div class="acts">
-        <button onclick='viewMaterial("${m.id}")'>👁️ 檢視</button>
-        <button onclick='openMaterialModal("${m.id}")'>✏️ 編輯</button>
-        <button class="del" onclick='delMaterial("${m.id}")'>🗑️ 刪除</button>
-      </div>
-    </div>`).join('');
+function openMaterialModal(){
+  modal(`<h2>新增教案素材</h2><label>名稱</label><input class="field" id="mName"><label>內容</label><textarea class="field" id="mContent"></textarea><button class="btn" onclick="saveMaterialModal()">儲存素材</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">取消</button>`);
 }
-function viewMaterial(id){
-  const m=read(LS.mat,[]).find(x=>x.id===id); if(!m)return;
-  const f=(k,v)=>v?`<div class="row"><span class="k">${k}</span>${v}</div>`:'';
-  modal(`<button class="close" onclick="closeModal()">×</button><h3>${m.name}</h3>
-    ${f('適合年齡',(m.ages||[]).join('、'))}
-    ${f('適合班級',(m.classes||[]).join('、'))}
-    ${f('使用器材',(m.equipment||[]).filter(Boolean).join('、'))}
-    ${f('訓練目標',(m.goals||[]).join('、'))}
-    ${f('課程時間',m.time)}
-    ${f('課程階段',m.stage)}
-    ${f('📝 玩法說明',m.content)}
-    ${f('⭐ 教學重點',m.keypoints)}
-    <div class="row cmd"><span class="k">🗣️ 教練口令</span>${m.commands||'—'}</div>
-    <div class="row assist"><span class="k">🙌 助教任務</span>${m.assistant||'—'}</div>
-    <div class="row safe"><span class="k">⚠️ 安全提醒</span>${m.safety||'—'}</div>
-    ${f('🔁 變化玩法',m.variations)}
-    ${m.thumb?`<a href="${m.video||'#'}" target="_blank" style="display:block;margin:6px 0"><div class="vthumb"><img src="${escAttr(m.thumb)}" onerror="this.parentNode.parentNode.style.display='none'"><span class="play">▶</span></div></a>`:(m.video?`<a class="vid-link" href="${m.video}" target="_blank">🎬 影片連結</a>`:'')}
-    ${f('備註',m.note)}
-  `);
-}
-function delMaterial(id){
-  if(!confirm('確定刪除此教案素材？'))return;
-  write(LS.mat, read(LS.mat,[]).filter(m=>m.id!==id));cloudDelete('materials',id);renderLib();toast('已刪除');
-}
-function openMaterialModal(id){
-  const m=id?read(LS.mat,[]).find(x=>x.id===id):null;
-  const chk=(arr,sel)=>arr.map(v=>`<label class="opt ${(sel||[]).includes(v)?'sel':''}" style="font-size:12px;padding:6px 10px" onclick="this.classList.toggle('sel')">${v}</label>`).join('');
-  modal(`<button class="close" onclick="closeModal()">×</button>
-    <h3>${m?'編輯素材':'新增教案素材'}</h3>
-    <input type="hidden" id="m_id" value="${m?m.id:''}">
-    <label class="fl">課程名稱 *</label><input class="f" id="m_name" value="${m?escAttr(m.name):''}">
-    <label class="fl">適合年齡</label><div class="opts" id="m_ages">${chk(AGES,m?.ages)}</div>
-    <label class="fl">適合班級</label><div class="opts" id="m_classes">${chk(CLASSES,m?.classes)}</div>
-    <label class="fl">使用器材</label><div class="opts" id="m_equip">${chk(EQUIP,m?.equipment)}</div>
-    <label class="fl">訓練目標</label><div class="opts" id="m_goals">${chk(GOALS,m?.goals)}</div>
-    <label class="fl">課程階段</label><select class="f" id="m_stage">${STAGES.map(s=>`<option ${m?.stage===s?'selected':''}>${s}</option>`).join('')}</select>
-    <label class="fl">課程時間</label><input class="f" id="m_time" value="${m?escAttr(m.time||''):''}" placeholder="例：10分鐘">
-    <label class="fl">玩法說明</label><textarea class="f" id="m_content">${m?esc(m.content):''}</textarea>
-    <label class="fl">教學重點</label><textarea class="f" id="m_keypoints">${m?esc(m.keypoints):''}</textarea>
-    <label class="fl">教練口令</label><textarea class="f" id="m_commands">${m?esc(m.commands):''}</textarea>
-    <label class="fl">助教任務</label><textarea class="f" id="m_assistant">${m?esc(m.assistant):''}</textarea>
-    <label class="fl">安全提醒</label><textarea class="f" id="m_safety">${m?esc(m.safety):''}</textarea>
-    <label class="fl">變化玩法</label><textarea class="f" id="m_variations">${m?esc(m.variations):''}</textarea>
-    <label class="fl">影片連結</label>
-    <input class="f" id="m_video" value="${m?escAttr(m.video||''):''}" placeholder="貼上 YouTube 連結可自動帶縮圖" onchange="autofillMaterial()" onpaste="setTimeout(autofillMaterial,120)">
-    <button class="btn sec sm" type="button" onclick="autofillMaterial()" style="margin-top:8px">🪄 自動帶入縮圖</button>
-    <input type="hidden" id="m_thumb" value="${m?escAttr(m.thumb||''):''}">
-    <div id="m_thumbPrev" style="margin-top:8px">${m&&m.thumb?`<img src="${escAttr(m.thumb)}" style="width:100%;border-radius:10px;border:1px solid var(--line)">`:''}</div>
-    <label class="fl">備註</label><input class="f" id="m_note" value="${m?escAttr(m.note||''):''}">
-    <div style="height:14px"></div>
-    <button class="btn" onclick="saveMaterial()">💾 儲存素材</button>
-    <div style="height:8px"></div>
-  `);
-}
-function getChecked(containerId){return [...$(containerId).querySelectorAll('.sel')].map(x=>x.textContent);}
-function saveMaterial(){
-  const name=$('m_name').value.trim();
-  if(!name){toast('請輸入課程名稱');return;}
-  const obj={
-    id:$('m_id').value||uid(), name,
-    ages:getChecked('m_ages'), classes:getChecked('m_classes'),
-    equipment:getChecked('m_equip'), goals:getChecked('m_goals'),
-    stage:$('m_stage').value, time:$('m_time').value.trim(),
-    content:$('m_content').value.trim(), keypoints:$('m_keypoints').value.trim(),
-    commands:$('m_commands').value.trim(), assistant:$('m_assistant').value.trim(),
-    safety:$('m_safety').value.trim(), variations:$('m_variations').value.trim(),
-    video:$('m_video').value.trim(), thumb:$('m_thumb').value.trim()||ytThumb($('m_video').value.trim()), note:$('m_note').value.trim()
-  };
-  let mats=read(LS.mat,[]);
-  const i=mats.findIndex(m=>m.id===obj.id);
-  if(i>=0)mats[i]=obj; else mats.unshift(obj);
-  write(LS.mat,mats);cloudUpsert('materials',obj);closeModal();renderLib();toast(syncOn()?'已儲存並同步雲端':'已儲存');
-}
+function editMaterial(id){const m=read(LS.materials,[]).find(x=>x.id===id); if(!m)return; openMaterialModal(); $('mName').value=m.name; $('mContent').value=m.content; $('mName').dataset.id=id}
+function saveMaterialModal(){const name=$('mName').value.trim(), content=$('mContent').value.trim(); if(!name)return toast('請輸入名稱'); const items=read(LS.materials,[]); const id=$('mName').dataset.id||uid(); const obj={id,name,content,stage:'自訂',goals:[],equipment:[],coach:'',assistant:'',safety:'',alt:''}; const i=items.findIndex(x=>x.id===id); if(i>=0)items[i]={...items[i],...obj}; else items.unshift(obj); write(LS.materials,items); closeModal(); renderMaterial(); toast('已儲存')}
+function openVideoModal(){modal(`<h2>新增教學影片</h2><label>標題</label><input class="field" id="vTitle"><label>連結</label><input class="field" id="vUrl"><button class="btn" onclick="saveVideoModal()">儲存影片</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">取消</button>`)}
+function saveVideoModal(){const title=$('vTitle').value.trim(), url=$('vUrl').value.trim(); if(!title||!url)return toast('請填標題與連結'); const v=read(LS.videos,[]); v.unshift({id:uid(),title,url,goals:[]}); write(LS.videos,v); closeModal(); renderMaterial(); toast('已儲存')}
 
-/* ============================================================
-   影片庫 CRUD
-   ============================================================ */
-/* 從連結解析 YouTube 影片 ID（支援 watch / youtu.be / shorts / embed） */
-function ytId(url){
-  if(!url)return '';
-  const m=url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-  return m?m[1]:'';
+function openSettings(){modal(`<h2>設定</h2><div class="mini-card"><b>資料狀態</b><div class="muted">素材 ${read(LS.materials,[]).length}｜影片 ${read(LS.videos,[]).length}｜歷史 ${read(LS.history,[]).length}</div></div><button class="btn ghost" onclick="exportData()">匯出備份 JSON</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">關閉</button>`)}
+function exportData(){const blob=new Blob([JSON.stringify({materials:read(LS.materials,[]),videos:read(LS.videos,[]),history:read(LS.history,[])},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='coachpro-backup.json'; a.click(); URL.revokeObjectURL(a.href)}
+function modal(html){$('modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`}
+function closeModal(){$('modalRoot').innerHTML=''}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),1800)}
+function copyText(text){navigator.clipboard?.writeText(text).then(()=>toast('已複製')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('已複製')})}
+function go(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); $('page-'+page).classList.remove('hidden');
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  $('appSub').textContent={plan:'備課：快速、AI、標準課表',material:'素材：教案、影片、招式',after:'課後：助教任務、家長回饋、LINE 文字',records:'紀錄：歷史、防重複、沿用'}[page];
+  if(page==='plan')renderPlan(); if(page==='material')renderMaterial(); if(page==='after')renderAfter(); if(page==='records')renderRecords();
+  window.scrollTo(0,0);
 }
-function ytThumb(url){const id=ytId(url);return id?`https://img.youtube.com/vi/${id}/hqdefault.jpg`:'';}
-
-/* 貼連結 → 自動搜尋帶入縮圖(／標題)。YouTube 直接解析縮圖；標題用 noembed，免金鑰、支援 CORS。
-   通用版：影片庫與素材庫共用。titleId 傳 null 時只帶縮圖（素材庫用）。 */
-let _autofillBusy=false;
-async function autofillThumb(urlId, thumbId, prevId, titleId){
-  const url=($(urlId)?.value||'').trim();
-  if(!url||_autofillBusy)return;
-  _autofillBusy=true;
-  let thumb=ytThumb(url), title='';
-  if(thumb)showThumbPrev(prevId,thumb);
-  try{
-    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),6000);
-    const r=await fetch('https://noembed.com/embed?url='+encodeURIComponent(url),{signal:ctrl.signal});
-    clearTimeout(t);
-    const d=await r.json();
-    if(d&&d.title&&!d.error)title=d.title;
-    if(!thumb&&d&&d.thumbnail_url)thumb=d.thumbnail_url;
-  }catch(e){/* 離線或來源不支援，靜默 */}
-  if(thumb){$(thumbId).value=thumb;showThumbPrev(prevId,thumb);}
-  if(titleId&&title&&!$(titleId).value.trim())$(titleId).value=title;
-  _autofillBusy=false;
-  if(title||thumb)toast('已自動帶入'); else toast('此來源無法自動取得，請手動填寫');
-}
-function autofillVideo(){return autofillThumb('v_url','v_thumb','v_thumbPrev','v_title');}
-function autofillMaterial(){return autofillThumb('m_video','m_thumb','m_thumbPrev',null);}
-function showThumbPrev(prevId,src){
-  const el=$(prevId); if(!el)return;
-  el.innerHTML=`<img src="${escAttr(src)}" onerror="this.style.display='none'" style="width:100%;border-radius:10px;border:1px solid var(--line)">`;
-}
-
-function renderVideos(){
-  const q=($('vidSearch').value||'').toLowerCase();
-  let vids=read(LS.vid,[]);
-  if(q)vids=vids.filter(v=>(v.title+(v.equipment||[]).join()+(v.goals||[]).join()).toLowerCase().includes(q));
-  const el=$('vidList');
-  if(!vids.length){el.innerHTML='<div class="empty"><span class="em">🎬</span>還沒有影片，點上方按鈕新增</div>';return;}
-  el.innerHTML=vids.map(v=>`
-    <div class="litem">
-      ${v.thumb?`<a href="${v.url}" target="_blank"><div class="vthumb"><img src="${escAttr(v.thumb)}" onerror="this.parentNode.style.display='none'"><span class="play">▶</span></div></a>`:''}
-      <h4>${v.title}</h4>
-      <div class="tags">
-        <span class="tag b">${v.stage}</span><span class="tag">${v.level}</span>
-        ${(v.classes||[]).slice(0,2).map(c=>`<span class="tag">${c}</span>`).join('')}
-        ${(v.goals||[]).slice(0,3).map(g=>`<span class="tag g">${g}</span>`).join('')}
-      </div>
-      <a class="vid-link" href="${v.url}" target="_blank">▶ 觀看影片</a>
-      <div class="acts">
-        <button onclick='openVideoModal("${v.id}")'>✏️ 編輯</button>
-        <button class="del" onclick='delVideo("${v.id}")'>🗑️ 刪除</button>
-      </div>
-    </div>`).join('');
-}
-function delVideo(id){if(!confirm('刪除此影片？'))return;write(LS.vid,read(LS.vid,[]).filter(v=>v.id!==id));cloudDelete('videos',id);renderVideos();toast('已刪除');}
-function openVideoModal(id){
-  const v=id?read(LS.vid,[]).find(x=>x.id===id):null;
-  const chk=(arr,sel)=>arr.map(x=>`<label class="opt ${(sel||[]).includes(x)?'sel':''}" style="font-size:12px;padding:6px 10px" onclick="this.classList.toggle('sel')">${x}</label>`).join('');
-  const levels=['簡單','中等','進階'];
-  modal(`<button class="close" onclick="closeModal()">×</button>
-    <h3>${v?'編輯影片':'新增教學影片'}</h3>
-    <input type="hidden" id="v_id" value="${v?v.id:''}">
-    <label class="fl">影片連結 *</label>
-    <input class="f" id="v_url" value="${v?escAttr(v.url):''}" placeholder="貼上 YouTube / FB Reels / IG 連結" onchange="autofillVideo()" onpaste="setTimeout(autofillVideo,120)">
-    <button class="btn sec sm" type="button" onclick="autofillVideo()" style="margin-top:8px">🪄 自動帶入標題與縮圖</button>
-    <input type="hidden" id="v_thumb" value="${v?escAttr(v.thumb||''):''}">
-    <div id="v_thumbPrev" style="margin-top:8px">${v&&v.thumb?`<img src="${escAttr(v.thumb)}" style="width:100%;border-radius:10px;border:1px solid var(--line)">`:''}</div>
-    <label class="fl">影片標題 *</label><input class="f" id="v_title" value="${v?escAttr(v.title):''}" placeholder="貼連結後可自動帶入，亦可手動修改">
-    <label class="fl">適合年齡</label><div class="opts" id="v_ages">${chk(AGES,v?.ages)}</div>
-    <label class="fl">適合班級</label><div class="opts" id="v_classes">${chk(CLASSES,v?.classes)}</div>
-    <label class="fl">器材</label><div class="opts" id="v_equip">${chk(EQUIP,v?.equipment)}</div>
-    <label class="fl">訓練目標</label><div class="opts" id="v_goals">${chk(GOALS,v?.goals)}</div>
-    <label class="fl">推薦課程階段</label><select class="f" id="v_stage">${STAGES.map(s=>`<option ${v?.stage===s?'selected':''}>${s}</option>`).join('')}</select>
-    <label class="fl">難度</label><select class="f" id="v_level">${levels.map(l=>`<option ${v?.level===l?'selected':''}>${l}</option>`).join('')}</select>
-    <label class="fl">備註</label><input class="f" id="v_note" value="${v?escAttr(v.note||''):''}">
-    <div style="height:14px"></div>
-    <button class="btn" onclick="saveVideo()">💾 儲存影片</button><div style="height:8px"></div>
-  `);
-}
-function saveVideo(){
-  const title=$('v_title').value.trim(), url=$('v_url').value.trim();
-  if(!title){toast('請輸入影片標題');return;}
-  if(!url){toast('請輸入影片連結');return;}
-  const obj={id:$('v_id').value||uid(),title,url,thumb:$('v_thumb').value.trim()||ytThumb(url),
-    ages:getChecked('v_ages'),classes:getChecked('v_classes'),equipment:getChecked('v_equip'),
-    goals:getChecked('v_goals'),stage:$('v_stage').value,level:$('v_level').value,note:$('v_note').value.trim()};
-  let vids=read(LS.vid,[]);const i=vids.findIndex(v=>v.id===obj.id);
-  if(i>=0)vids[i]=obj;else vids.unshift(obj);
-  write(LS.vid,vids);cloudUpsert('videos',obj);closeModal();renderVideos();toast(syncOn()?'已儲存並同步雲端':'已儲存');
-}
-
-/* ============================================================
-   設定 / 備份 / 還原
-   ============================================================ */
-function openSettings(){
-  const m=read(LS.mat,[]).length, v=read(LS.vid,[]).length, h=read(LS.hist,[]).length;
-  modal(`<button class="close" onclick="closeModal()">×</button>
-    <h3>⚙️ 設定與資料管理</h3>
-    <div class="stat">
-      <div><div class="n">${m}</div><div class="l">教案素材</div></div>
-      <div><div class="n">${v}</div><div class="l">教學影片</div></div>
-      <div><div class="n">${h}</div><div class="l">歷史課表</div></div>
-    </div>
-    <div class="set-row" onclick="exportData()"><span class="si">📦</span><div>匯出全部資料（備份）<small>下載一個 JSON 檔，換手機/電腦可帶著走</small></div></div>
-    <label class="set-row" style="cursor:pointer"><span class="si">📥</span><div>匯入資料（還原）<small>選擇之前匯出的 JSON 檔</small></div>
-      <input type="file" accept="application/json,.json" style="display:none" onchange="importData(this)"></label>
-    <div class="set-row" onclick="restoreSeedExamples()"><span class="si">🌱</span><div>補齊範例素材<small>把出廠範例教案補回來（不會刪你自己的）</small></div></div>
-    <div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">
-      <div style="font-weight:800;font-size:14px;margin-bottom:4px">🎬 YouTube 影片自動列出</div>
-      <div style="font-size:11px;color:var(--sub);margin-bottom:8px">貼上免費 YouTube API 金鑰，課表就會自動列出真實影片清單。</div>
-      <input class="f" id="ytKeyInput" value="${escAttr(read(LS.ytkey,''))}" placeholder="貼上 YouTube Data API 金鑰">
-      <div style="height:8px"></div>
-      <button class="btn sm" onclick="saveYtKey()">💾 儲存金鑰</button>
-      <div style="height:6px"></div>
-      <a href="#" onclick="toggleYtHelp(event)" style="font-size:12px;color:var(--accent);font-weight:700">📖 如何免費取得金鑰？</a>
-      <div id="ytHelp" class="hidden" style="font-size:11px;color:#475569;line-height:1.8;margin-top:8px;background:var(--soft);border-radius:8px;padding:10px">
-        1. 到 <b>console.cloud.google.com</b> 登入 Google，建立一個專案。<br>
-        2. 左側「API 和服務 → 程式庫」搜尋 <b>YouTube Data API v3</b> → 啟用。<br>
-        3. 「憑證 → 建立憑證 → API 金鑰」，複製產生的金鑰。<br>
-        4. （建議）點該金鑰 → 應用程式限制選「網站」→ 加入 <b>shark7763-del.github.io/*</b>，避免被盜用。<br>
-        5. 把金鑰貼到上面儲存即可。每天免費可搜尋約 100 次，足夠日常備課。
-      </div>
-    </div>
-    <div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">
-      <div style="font-weight:800;font-size:14px;margin-bottom:4px">☁️ 全館雲端同步</div>
-      <div style="font-size:11px;color:var(--sub);margin-bottom:8px">所有教練共用同一套<b>素材庫／影片庫／常用模板</b>。一人新增，大家下載後都看得到。</div>
-      <input class="f" id="syncUrlInput" value="${escAttr(read(LS.syncUrl,''))}" placeholder="貼上 GAS 網頁應用程式 /exec 網址">
-      <div style="height:8px"></div>
-      <div class="btn-row">
-        <button class="btn sm" onclick="saveSyncUrl()">💾 儲存並下載</button>
-        <button class="btn sec sm" onclick="cloudPull()">⬇️ 立即下載</button>
-      </div>
-      <div style="height:6px"></div>
-      <button class="btn sec sm" onclick="cloudPushAll()">⬆️ 上傳本機到雲端（初始化用）</button>
-      <div style="height:6px"></div>
-      <a href="#" onclick="toggleSyncHelp(event)" style="font-size:12px;color:var(--accent);font-weight:700">📖 如何建立全館雲端後端？</a>
-      <div id="syncHelp" class="hidden" style="font-size:11px;color:#475569;line-height:1.8;margin-top:8px;background:var(--soft);border-radius:8px;padding:10px">
-        1. 到 <b>sheets.new</b> 建立一個 Google 試算表。<br>
-        2. 上方「擴充功能 → Apps Script」，貼上我給你的 <b>Code.gs</b> 內容、儲存。<br>
-        3. 右上「部署 → 新增部署作業 → 網頁應用程式」；執行身分＝你、存取權限＝<b>任何人</b>。<br>
-        4. 複製 <b>/exec</b> 網址，貼到上面欄位 → 儲存並下載。<br>
-        5. 在資料最齊全的那台按一次「⬆️ 上傳本機到雲端」做初始化。<br>
-        6. 其他教練貼<b>同一個網址</b>、按「⬇️ 立即下載」即可全館共用。
-      </div>
-    </div>
-    <div class="set-row" onclick="clearAllData()" style="border-color:#fecdd3; color:var(--brand)"><span class="si">🗑️</span><div>清空全部資料<small>連同你新增的都會刪除，請謹慎</small></div></div>
-    <div style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px">道館教練備課助手 · ${read(LS.syncUrl,'')?'☁️ 已連線全館雲端':'資料儲存在本機瀏覽器'}</div>
-  `);
-}
-function toggleSyncHelp(e){e.preventDefault();$('syncHelp').classList.toggle('hidden');}
-function exportData(){
-  const data={app:'coach-lesson-planner',version:1,exportedAt:new Date().toISOString(),
-    materials:read(LS.mat,[]),videos:read(LS.vid,[]),history:read(LS.hist,[])};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`備課助手備份_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();URL.revokeObjectURL(a.href);
-  toast('已下載備份檔');
-}
-function importData(input){
-  const file=input.files[0]; if(!file)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const d=JSON.parse(e.target.result);
-      if(!d.materials&&!d.videos&&!d.history){toast('檔案格式不符');return;}
-      if(!confirm('匯入會「覆蓋」目前所有資料，確定？')){input.value='';return;}
-      if(d.materials)write(LS.mat,d.materials);
-      if(d.videos)write(LS.vid,d.videos);
-      if(d.history)write(LS.hist,d.history);
-      closeModal();renderLib();renderVideos();renderHist();
-      toast('已還原資料');
-    }catch(err){toast('讀取失敗：'+err.message);}
-    input.value='';
-  };
-  r.readAsText(file);
-}
-
-/* ============================================================
-   全館雲端同步（GAS + Google Sheets）
-   共用集合：materials / videos / templates
-   ============================================================ */
-function syncOn(){return !!read(LS.syncUrl,'');}
-function saveSyncUrl(){
-  const u=$('syncUrlInput').value.trim();
-  write(LS.syncUrl,u);
-  toast(u?'已儲存，開始下載…':'已關閉雲端同步');
-  if(u)cloudPull();
-}
-function cloudPost(body){
-  const url=read(LS.syncUrl,''); if(!url)return Promise.resolve(null);
-  // 用預設 text/plain 內容型別，避免 CORS 預檢；GAS 以 e.postData.contents 解析
-  return fetch(url,{method:'POST',body:JSON.stringify(body)}).then(r=>r.json()).catch(()=>null);
-}
-function cloudUpsert(coll,item){ if(syncOn())cloudPost({action:'upsert',coll,item}); }
-function cloudDelete(coll,id){ if(syncOn())cloudPost({action:'delete',coll,id}); }
-async function cloudPull(silent){
-  const url=read(LS.syncUrl,'');
-  if(!url){ if(!silent)toast('尚未設定同步網址'); return; }
-  if(!silent)toast('☁️ 下載中…');
-  try{
-    const sep=url.includes('?')?'&':'?';
-    const r=await fetch(url+sep+'action=pull&t='+Date.now());
-    const d=await r.json();
-    if(d.error)throw new Error(d.error);
-    if(Array.isArray(d.materials)&&d.materials.length)write(LS.mat,d.materials);
-    if(Array.isArray(d.videos)&&d.videos.length)write(LS.vid,d.videos);
-    if(Array.isArray(d.templates)&&d.templates.length)write(LS.tpl,d.templates);
-    if(typeof renderLib==='function')renderLib();
-    if(typeof renderVideos==='function')renderVideos();
-    if(!silent)toast('☁️ 已同步全館資料');
-  }catch(e){ if(!silent)toast('同步失敗：'+e.message); }
-}
-async function cloudPushAll(){
-  if(!syncOn()){toast('請先儲存同步網址');return;}
-  if(!confirm('將「這台」目前的素材、影片、常用模板覆蓋上傳到雲端，作為全館共用版本？\n（其他教練下載後會看到這份）'))return;
-  toast('☁️ 上傳中…');
-  try{
-    await cloudPost({action:'bulk',coll:'materials',item:read(LS.mat,[])});
-    await cloudPost({action:'bulk',coll:'videos',item:read(LS.vid,[])});
-    await cloudPost({action:'bulk',coll:'templates',item:read(LS.tpl,[])});
-    toast('☁️ 已上傳，其他教練按「立即下載」即可共用');
-  }catch(e){toast('上傳失敗：'+e.message);}
-}
-
-function restoreSeedExamples(){
-  const cur=read(LS.mat,[]); const names=new Set(cur.map(m=>m.name));
-  let added=0;
-  seedMaterials().forEach(s=>{ if(!names.has(s.name)){cur.push({...s,id:uid()});added++;} });
-  write(LS.mat,cur);renderLib();
-  toast(added?`已補回 ${added} 筆範例素材`:'範例素材已是最新');
-}
-function saveYtKey(){
-  const k=$('ytKeyInput').value.trim();
-  write(LS.ytkey,k);
-  toast(k?'金鑰已儲存，課表將自動列出影片':'已清除金鑰');
-  if(CURRENT)loadLiveVideos(CURRENT);
-}
-function toggleYtHelp(e){e.preventDefault();$('ytHelp').classList.toggle('hidden');}
-
-function clearAllData(){
-  if(!confirm('確定清空全部資料？此動作無法復原。'))return;
-  if(!confirm('再次確認：連同你新增的素材、影片、歷史都會刪除。'))return;
-  [LS.mat,LS.vid,LS.hist,LS.cur,LS.seed].forEach(k=>localStorage.removeItem(k));
-  location.reload();
-}
-
-/* ============================================================
-   課表列印 / 匯出 PDF（開新視窗 → 瀏覽器列印另存 PDF）
-   ============================================================ */
-function printLesson(){
-  const L=CURRENT; if(!L){toast('沒有可列印的課表');return;}
-  const c=L.ctx;
-  const total=['幼幼班','幼兒班'].includes(c.cls)?'90 分鐘':'60 分鐘';
-  const d=new Date(L.date);
-  const ds=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
-  let rows='';
-  L.blocks.forEach(b=>{
-    const m=b.m;
-    rows+=`<tr>
-      <td class="t">${b.seg.t}<br><b>${b.seg.label}</b></td>
-      <td>`;
-    if(m){
-      rows+=`<div class="nm">${m.name}</div>`;
-      if((m.equipment||[]).filter(Boolean).length)rows+=`<div class="li"><b>器材：</b>${m.equipment.join('、')}</div>`;
-      rows+=`<div class="li"><b>內容：</b>${esc(m.content)}</div>`;
-      rows+=`<div class="li"><b>重點：</b>${esc(m.keypoints)}</div>`;
-      rows+=`<div class="li"><b>口令：</b>${esc(m.commands)}</div>`;
-      rows+=`<div class="li"><b>助教：</b>${esc(m.assistant)}</div>`;
-      rows+=`<div class="li"><b>安全：</b>${esc(m.safety||'—')}</div>`;
-    }else rows+='（此段無對應素材）';
-    rows+=`</td></tr>`;
-  });
-  const html=`<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><title>今日課表 ${ds}</title>
-  <style>
-    *{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;box-sizing:border-box}
-    body{margin:24px;color:#0f172a}
-    h1{font-size:20px;margin:0 0 4px;border-bottom:3px solid #e11d48;padding-bottom:8px}
-    .meta{font-size:12px;color:#475569;margin:8px 0 16px}
-    .meta b{color:#0f172a}
-    table{width:100%;border-collapse:collapse}
-    td{border:1px solid #cbd5e1;padding:8px 10px;vertical-align:top;font-size:12px}
-    td.t{width:110px;background:#f1f5f9;font-size:11px;text-align:center}
-    .nm{font-weight:800;font-size:13px;color:#e11d48;margin-bottom:4px}
-    .li{margin:3px 0;line-height:1.5}
-    .li b{color:#be123c}
-    .ft{margin-top:16px;font-size:11px;color:#94a3b8;text-align:center}
-    @media print{body{margin:12mm}}
-  </style></head><body>
-    <h1>🥋 今日課表 · ${c.cls}</h1>
-    <div class="meta">日期：<b>${ds}</b> ｜ 年齡：<b>${c.age}</b> ｜ 人數：<b>${c.size}</b> ｜ 時長：<b>${total}</b> ｜ 強度：<b>${c.intensity}</b><br>
-    教學目標：<b>${c.goals.join('、')}</b>${c.equip.length?` ｜ 器材：<b>${c.equip.join('、')}</b>`:''}</div>
-    <table><tbody>${rows}</tbody></table>
-    <div class="ft">道館教練備課助手 · 列印於 ${new Date().toLocaleString('zh-TW')}</div>
-    <script>window.onload=function(){window.print()}<\/script>
-  </body></html>`;
-  const w=window.open('','_blank');
-  if(!w){toast('請允許彈出視窗以列印');return;}
-  w.document.write(html);w.document.close();
-}
-
-/* ============================================================
-   工具：modal / toast / 導覽
-   ============================================================ */
-function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function escAttr(s){return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
-function modal(html){$('modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;}
-function closeModal(){$('modalRoot').innerHTML='';}
-let toastTimer;
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1900);}
-
-const PAGES={plan:'不用再煩惱今天要教什麼',ai:'AI 智能備課教練',lib:'教案素材庫',video:'影片靈感庫',tech:'技術動作教學重點速查',assist:'助教模式',parent:'家長回饋產生器',hist:'歷史課表'};
-function go(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
-  $('page-'+p).classList.remove('hidden');
-  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
-  $('appbarSub').textContent=PAGES[p]||'';
-  if(p==='lib')renderLib();
-  if(p==='video')renderVideos();
-  if(p==='tech')renderTech();
-  if(p==='hist')renderHist();
-  if(p==='parent')renderAssistTasks();
-  if(p!=='plan')window.scrollTo(0,0);
-}
-
-/* ============================================================
-   啟動
-   ============================================================ */
-function init(){
-  ensureSeed();
-  searchLang=read(LS.lang,'zh');
-  buildOpts();
-  // 還原上次課表（標準 / 精靈，取較新的顯示）
-  const last=read(LS.cur,null);
-  STD=read(LS.std,null);
-  const stdT=STD?Date.parse(STD.date)||0:0;
-  const curT=last?Date.parse(last.date)||0:0;
-  if(STD&&stdT>=curT){
-    renderStandard();
-  }else if(last){
-    CURRENT=last;renderLesson();renderAssistTasks();
-    $('parentNoLesson').classList.add('hidden');$('parentReady').classList.remove('hidden');
-  }
-  go('plan');
-  // 全館雲端同步：啟動時靜默下載最新共用資料
-  if(syncOn())cloudPull(true);
-}
-init();
+seed(); renderPlan();
 </script>
 </body>
 </html>

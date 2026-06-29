@@ -1,0 +1,18 @@
+{
+  "name": "CoachPro",
+  "short_name": "CoachPro",
+  "description": "CoachPro 備課戰情室",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#101828",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "coachpro-logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
