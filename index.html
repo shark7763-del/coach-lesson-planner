@@ -167,6 +167,7 @@ details.lesson-card{padding:0;margin-bottom:12px}
 .mini-video{border-top:1px solid rgba(0,217,255,.12);padding-top:10px;margin-top:10px}
 .video-thumb{width:100%;aspect-ratio:16/9;border-radius:16px;border:1px solid var(--border-glow);background:linear-gradient(135deg,rgba(0,217,255,.16),rgba(47,128,255,.10));display:grid;place-items:center;overflow:hidden;margin-bottom:10px}
 .video-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.video-thumb iframe{width:100%;height:100%;border:0;display:block;background:#050B14}
 .video-thumb span{font-size:28px;color:var(--primary);text-shadow:0 0 18px rgba(0,217,255,.6)}
 .video-fallback{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;color:var(--text-muted)}
 .video-fallback .play{font-size:30px;color:var(--primary);line-height:1;margin-bottom:8px;text-shadow:0 0 18px rgba(0,217,255,.6)}
@@ -209,16 +210,16 @@ details.lesson-card{padding:0;margin-bottom:12px}
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEYS={curriculum:'coachpro_curriculum_v1',students:'coachpro_students_v1',lessonPlans:'lessonPlans',current:'coachpro_current_v2',fitness:'coachpro_fitness_v1',videos:'coachpro_videos_v1'};
+const STORAGE_KEYS={curriculum:'coachpro_curriculum_v1',students:'coachpro_students_v1',lessonPlans:'lessonPlans',current:'coachpro_current_v2',fitness:'coachpro_fitness_v1',videos:'videoLibrary',oldVideos:'coachpro_videos_v1'};
 function saveData(key,value){localStorage.setItem(key,JSON.stringify(value))}
 function loadData(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch(e){return fallback}}
 function removeData(key){localStorage.removeItem(key)}
 function exportJson(){
-  const data={version:2,exportedAt:new Date().toISOString(),curriculum:loadData(STORAGE_KEYS.curriculum,[]),students:loadData(STORAGE_KEYS.students,[]),lessonPlans:loadData(STORAGE_KEYS.lessonPlans,[]),fitness:loadData(STORAGE_KEYS.fitness,[]),videos:loadData(STORAGE_KEYS.videos,[])};
+  const data={version:2,exportedAt:new Date().toISOString(),curriculum:loadData(STORAGE_KEYS.curriculum,[]),students:loadData(STORAGE_KEYS.students,[]),lessonPlans:loadData(STORAGE_KEYS.lessonPlans,[]),fitness:loadData(STORAGE_KEYS.fitness,[]),videos:videos()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='coachpro-data.json';a.click();URL.revokeObjectURL(a.href);
 }
 function importJson(file){
-  const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.curriculum)saveData(STORAGE_KEYS.curriculum,d.curriculum);if(d.students)saveData(STORAGE_KEYS.students,d.students);if(d.lessonPlans)saveData(STORAGE_KEYS.lessonPlans,d.lessonPlans);if(d.fitness)saveData(STORAGE_KEYS.fitness,d.fitness);if(d.videos)saveData(STORAGE_KEYS.videos,d.videos);toast('已匯入資料');closeModal();refresh()}catch(err){toast('匯入失敗')}};r.readAsText(file);
+  const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.curriculum)saveData(STORAGE_KEYS.curriculum,d.curriculum);if(d.students)saveData(STORAGE_KEYS.students,d.students);if(d.lessonPlans)saveData(STORAGE_KEYS.lessonPlans,d.lessonPlans);if(d.fitness)saveData(STORAGE_KEYS.fitness,d.fitness);if(d.videos)saveVideos(d.videos);toast('已匯入資料');closeModal();refresh()}catch(err){toast('匯入失敗')}};r.readAsText(file);
 }
 const $=id=>document.getElementById(id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -233,9 +234,9 @@ const GOALS=['基本動作','基本腿法','踢靶應用','品勢段落','對練
 const EQUIP=['踢靶','角錐','敏捷圈','軟墊','跳繩','反應燈','欄架','無器材'];
 const VIDEO_CATEGORIES=['基本腿法','品勢教學','對練應用','體能訓練','幼兒課程','助教示範'];
 const videoSeed=[
-  {id:'vid-basic-kick',title:'基本腿法踢靶搜尋',category:'基本腿法',beltLevel:'八級黃帶',classType:'基礎班',goal:'前踢、旋踢、踢靶',equipment:'踢靶',videoUrl:'https://www.youtube.com/results?search_query=taekwondo+kids+front+kick+roundhouse+pad+drill',thumbnailUrl:'',keyPoints:'抬膝、轉髖、收腳、踢靶距離',coachNotes:'適合放在主課前讓教練抓示範重點。',safetyNotes:'一次一人進入踢擊區，持靶者站穩。',favorite:true,createdAt:todayISO()},
-  {id:'vid-poomsae',title:'太極一章教學搜尋',category:'品勢教學',beltLevel:'八級黃帶',classType:'品勢班',goal:'品勢段落、太極一章',equipment:'無器材',videoUrl:'https://www.youtube.com/results?search_query=taegeuk+1+taekwondo+poomsae+tutorial',thumbnailUrl:'',keyPoints:'方向、站姿、視線、八拍節奏',coachNotes:'適合課綱複習雷達使用。',safetyNotes:'手刀與踢腿保持左右間距。',favorite:false,createdAt:todayISO()},
-  {id:'vid-fitness',title:'兒童敏捷反應訓練搜尋',category:'體能訓練',beltLevel:'0級白帶',classType:'幼幼班',goal:'幼兒協調、反應、敏捷',equipment:'角錐、敏捷圈',videoUrl:'https://www.youtube.com/results?search_query=kids+agility+reaction+games+cones',thumbnailUrl:'',keyPoints:'短回合、低碰撞、規則簡單',coachNotes:'可改成闖關或接力。',safetyNotes:'轉彎處放慢，不推擠。',favorite:true,createdAt:todayISO()}
+  {id:'vid-basic-kick',title:'基本腿法踢靶搜尋',category:'基本腿法',beltLevel:'八級黃帶',classType:'基礎班',goal:'前踢、旋踢、踢靶',equipment:'踢靶',videoUrl:'https://www.youtube.com/results?search_query=taekwondo+kids+front+kick+roundhouse+pad+drill',keyPoints:'抬膝、轉髖、收腳、踢靶距離',coachNotes:'適合放在主課前讓教練抓示範重點。',safetyNotes:'一次一人進入踢擊區，持靶者站穩。',favorite:true,createdAt:todayISO()},
+  {id:'vid-poomsae',title:'太極一章教學搜尋',category:'品勢教學',beltLevel:'八級黃帶',classType:'品勢班',goal:'品勢段落、太極一章',equipment:'無器材',videoUrl:'https://www.youtube.com/results?search_query=taegeuk+1+taekwondo+poomsae+tutorial',keyPoints:'方向、站姿、視線、八拍節奏',coachNotes:'適合課綱複習雷達使用。',safetyNotes:'手刀與踢腿保持左右間距。',favorite:false,createdAt:todayISO()},
+  {id:'vid-fitness',title:'兒童敏捷反應訓練搜尋',category:'體能訓練',beltLevel:'0級白帶',classType:'幼幼班',goal:'幼兒協調、反應、敏捷',equipment:'角錐、敏捷圈',videoUrl:'https://www.youtube.com/results?search_query=kids+agility+reaction+games+cones',keyPoints:'短回合、低碰撞、規則簡單',coachNotes:'可改成闖關或接力。',safetyNotes:'轉彎處放慢，不推擠。',favorite:true,createdAt:todayISO()}
 ];
 const QUICK_STEPS=[
   {key:'classType',title:'選班級',items:CLASSES},{key:'beltLevel',title:'選色帶級別',items:BELTS},{key:'age',title:'選年齡',items:AGES},{key:'size',title:'選人數',items:SIZES},{key:'place',title:'選場地',items:PLACES},{key:'goals',title:'選今日目標',items:GOALS,multi:true},{key:'equipment',title:'選器材',items:EQUIP,multi:true}
@@ -253,12 +254,12 @@ const curriculumSeed=[
   ['dan-prep','晉段準備','晉段準備','一年半以上','高麗型、指定型、太極八章、太極一章～太極八章、全套護具自由對打、擊破','高麗型、指定型、太極一章～太極八章','晉段足技','全套護具自由對打','擊破','高麗型、指定型、太極八章、全套護具自由對打、擊破','系統顯示使用晉段，避免混用名稱']
 ].map(x=>({id:x[0],levelName:x[1],displayName:x[2],suggestedLessons:x[3],teachingContent:x[4],poomsae:x[5],kicking:x[6],sparringOrPads:x[7],powerBreaking:x[8],testItems:x[9],coachNotes:x[10]}));
 const fitnessSeed=['敏捷','爆發力','核心','平衡','協調','反應','心肺','柔軟度','恢復收操'].map((name,i)=>({id:'fit-'+i,name,ages:['3-6歲','國小低年級','國小高年級','國中','高中以上'],classes:['基礎班','選手班','暑期集訓'],intensity:i>5?'中高':'中等',equipment:i%2?['角錐','敏捷圈']:['無器材'],safety:'依年齡調整強度，保持安全距離，疲勞時降階。',low:'降低速度、縮短距離、增加休息。',high:'加入計時、反應口令或分站競賽。',game:'改成闖關、接力或顏色反應任務。'}));
-let screen='home',quickStep=0,quick={classType:'',beltLevel:'',age:'',size:'',place:'',goals:[],equipment:[]},CURRENT=loadData(STORAGE_KEYS.current,null),curriculumTab='lesson',studentQuery='',feedbackTab='line',videoFilter={q:'',category:'全部',beltLevel:'全部',classType:'全部',goal:'全部'};
-function ensureData(){if(!loadData(STORAGE_KEYS.curriculum,null))saveData(STORAGE_KEYS.curriculum,curriculumSeed);if(!loadData(STORAGE_KEYS.fitness,null))saveData(STORAGE_KEYS.fitness,fitnessSeed);if(!loadData(STORAGE_KEYS.students,null))saveData(STORAGE_KEYS.students,[]);if(!loadData(STORAGE_KEYS.videos,null))saveData(STORAGE_KEYS.videos,videoSeed)}
+let screen='home',quickStep=0,quick={classType:'',beltLevel:'',age:'',size:'',place:'',goals:[],equipment:[]},CURRENT=loadData(STORAGE_KEYS.current,null),curriculumTab='lesson',studentQuery='',feedbackTab='line',videoFilter={q:'',category:'全部',beltLevel:'全部',classType:'全部',goal:'全部',favorite:'全部'};
+function ensureData(){if(!loadData(STORAGE_KEYS.curriculum,null))saveData(STORAGE_KEYS.curriculum,curriculumSeed);if(!loadData(STORAGE_KEYS.fitness,null))saveData(STORAGE_KEYS.fitness,fitnessSeed);if(!loadData(STORAGE_KEYS.students,null))saveData(STORAGE_KEYS.students,[]);if(!loadData(STORAGE_KEYS.videos,null)){const old=loadData(STORAGE_KEYS.oldVideos,null);saveData(STORAGE_KEYS.videos,(old&&old.length?old:videoSeed).map(normalizeVideo))}}
 function curriculum(){return loadData(STORAGE_KEYS.curriculum,curriculumSeed)}
 function students(){return loadData(STORAGE_KEYS.students,[])}
 function lessons(){return loadData(STORAGE_KEYS.lessonPlans,[])}
-function videos(){return loadData(STORAGE_KEYS.videos,videoSeed)}
+function videos(){return loadData(STORAGE_KEYS.videos,videoSeed.map(normalizeVideo)).map(normalizeVideo)}
 function curFor(level){return curriculum().find(c=>c.displayName===level)||curriculum()[0]}
 function itemsFor(c){return [c.teachingContent,c.poomsae,c.kicking,c.sparringOrPads,c.powerBreaking,c.testItems].join('、').split(/[、,，]/).map(x=>x.trim()).filter(Boolean)}
 function renderPlan(){
@@ -327,12 +328,35 @@ function renderResult(){
   if(!CURRENT){screen='home';return renderPlan()}const s=goScore(CURRENT);
   $('page-plan').innerHTML=`<div class="result-top"><div style="display:flex;align-items:center;gap:14px"><div style="flex:1"><h2>今日課表總覽</h2><div class="muted">戰情任務已生成，可直接帶到現場。</div></div><div class="score-orb">/go<br>${s.score}/10</div></div><div class="metric-grid"><div class="metric"><span>班級</span><b>${CURRENT.classType}</b></div><div class="metric"><span>級別</span><b>${CURRENT.beltLevel}</b></div><div class="metric"><span>今日目標</span><b>${CURRENT.goals.join('、')}</b></div><div class="metric"><span>建議器材</span><b>${CURRENT.equipment.join('、')}</b></div></div></div>${s.score<8?`<div class="alert"><b>/go 改善建議</b>${s.tips.map(x=>`<div>${x}</div>`).join('')}</div>`:''}<div class="card"><button class="btn" onclick="copyText(fullLessonText())">一鍵複製完整課表 ➜</button><div style="height:8px"></div><div class="btn-row"><button class="btn ghost sm" onclick="go('after')">課後回饋</button><button class="btn ghost sm" onclick="variation()">變化版本</button></div></div>${CURRENT.blocks.map((b,i)=>`<details class="lesson-card" ${i===0?'open':''}><summary><span class="time-badge">${b.time}</span><h3>${b.name}</h3><span class="chev">➜</span></summary><div class="detail-grid"><div class="detail"><b>教學內容</b>${b.content}</div><div class="detail"><b>主教練任務</b>${b.coach}</div><div class="detail assist"><b>助教任務</b>${b.assistant}<br>站位：${b.assistantDetail.position}<br>看什麼：${b.assistantDetail.watch}<br>控場口令：${b.assistantDetail.command}</div><div class="detail safe"><b>安全提醒</b>${b.safe}</div><div class="detail"><b>替代方案</b>${b.alt}</div><div class="detail curr"><b>對應課綱項目</b>${b.curriculumItem}</div>${recommendedVideoHtml(b,i)}</div></details>`).join('')}`;
 }
+function toYouTubeEmbed(url){
+  const id=ytId(url);
+  return id?`https://www.youtube.com/embed/${id}`:'';
+}
+function videoSourceType(url){
+  if(!url)return 'unknown';
+  if(ytId(url))return 'youtube';
+  if(/youtube\.com\/results|google\.com\/search/i.test(url))return 'external';
+  return 'external';
+}
+function normalizeVideo(v){
+  const videoUrl=v.videoUrl||v.url||'';
+  const embedUrl=v.embedUrl||toYouTubeEmbed(videoUrl);
+  const sourceType=v.sourceType||videoSourceType(videoUrl);
+  const embedStatus=v.embedStatus||(embedUrl?'embeddable':(videoUrl?'external':'unknown'));
+  return {id:v.id||uid(),title:v.title||'未命名影片',category:v.category||'基本腿法',beltLevel:v.beltLevel||'八級黃帶',classType:v.classType||'基礎班',goal:v.goal||'',equipment:v.equipment||'',videoUrl,embedUrl,thumbnailUrl:v.thumbnailUrl||ytThumb(videoUrl),keyPoints:v.keyPoints||'',coachNotes:v.coachNotes||'',safetyNotes:v.safetyNotes||'',sourceType,embedStatus,favorite:!!v.favorite,createdAt:v.createdAt||todayISO(),updatedAt:v.updatedAt||v.createdAt||todayISO()};
+}
+function saveVideos(list){saveData(STORAGE_KEYS.videos,list.map(normalizeVideo))}
+function videoStatusLabel(v){return v.embedStatus==='embeddable'?'可內嵌':v.embedStatus==='external'?'外部開啟':'連結待確認'}
 function recommendedVideos(block){
   const text=[block.name,block.content,block.curriculumItem].join(' ');
   const terms=text.split(/[、，\s]/).filter(Boolean);
   return videos().map(v=>{
     const hay=[v.title,v.category,v.goal,v.keyPoints,v.coachNotes].join(' ');
     let score=0;
+    if(v.favorite)score+=3;
+    if(CURRENT?.beltLevel&&v.beltLevel===CURRENT.beltLevel)score+=2;
+    if(CURRENT?.classType&&v.classType===CURRENT.classType)score+=2;
+    (CURRENT?.goals||[]).forEach(g=>{if((v.goal||'').includes(g))score+=4});
     if(/踢|旋|下壓|側|前拍|靶/.test(text)&&v.category==='基本腿法')score+=5;
     if(/品勢|太極|型/.test(text)&&v.category==='品勢教學')score+=5;
     if(/對練|反擊|護具/.test(text)&&v.category==='對練應用')score+=5;
@@ -342,16 +366,23 @@ function recommendedVideos(block){
   }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,2).map(x=>x.v);
 }
 function recommendedVideoHtml(block,idx){
-  const rec=recommendedVideos(block), added=(block.videoIds||[]).map(id=>videos().find(v=>v.id===id)).filter(Boolean);
+  const rec=recommendedVideos(block), added=((block.referenceVideos||block.videoIds)||[]).map(x=>typeof x==='string'?videos().find(v=>v.id===x):x).filter(Boolean).map(normalizeVideo);
   const list=[...added,...rec.filter(v=>!added.some(a=>a.id===v.id))].slice(0,3);
   if(!list.length)return `<div class="detail"><b>參考教學影片</b>尚無推薦影片，可到素材分頁新增。</div>`;
-  return `<div class="detail curr"><b>參考教學影片</b>${list.map(v=>`<div class="mini-video"><span class="tag blue">${v.category}</span><b>${esc(v.title)}</b><div class="btn-row" style="margin-top:8px"><a class="btn sm ghost" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><button class="btn sm ghost" onclick="addVideoToLesson(${idx},'${v.id}')">加入今日課表</button></div></div>`).join('')}</div>`;
+  return `<div class="detail curr"><b>參考教學影片</b>${list.map(v=>`<div class="mini-video"><span class="tag blue">${v.category}</span><span class="tag">${videoStatusLabel(v)}</span><b>${esc(v.title)}</b><div class="btn-row" style="margin-top:8px"><a class="btn sm" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><button class="btn sm ghost" onclick="addVideoToLesson(${idx},'${v.id}')">加入今日課表</button></div></div>`).join('')}</div>`;
 }
 function addVideoToLesson(blockIndex,videoId){
   const b=CURRENT?.blocks?.[blockIndex]; if(!b)return;
-  b.videoIds=b.videoIds||[];
-  if(!b.videoIds.includes(videoId))b.videoIds.push(videoId);
+  const v=videos().find(x=>x.id===videoId); if(!v)return;
+  b.referenceVideos=b.referenceVideos||[];
+  if(!b.referenceVideos.some(x=>(typeof x==='string'?x:x.id)===videoId))b.referenceVideos.push(normalizeVideo(v));
   persistLesson(); renderResult(); toast('已加入今日課表');
+}
+function addVideoToCurrent(videoId){
+  if(!CURRENT?.blocks?.length){toast('請先產生今日課表');return}
+  const v=videos().find(x=>x.id===videoId); if(!v)return;
+  const scored=CURRENT.blocks.map((b,i)=>({i,s:recommendedVideos(b).some(r=>r.id===videoId)?2:([b.name,b.content,b.curriculumItem].join(' ').includes(v.goal)||v.goal.includes(CURRENT.goals[0])?1:0)})).sort((a,b)=>b.s-a.s)[0];
+  addVideoToLesson(scored?.i||0,videoId);
 }
 function variation(){CURRENT=buildLesson({...CURRENT,equipment:CURRENT.equipment.includes('無器材')?['踢靶','角錐']:['無器材'],size:CURRENT.size==='25人以上'?'15-25人':'25人以上'},'變化版');persistLesson();renderResult();toast('已產生變化版')}
 function fullLessonText(){return `CoachPro 今日課表\n班級：${CURRENT.classType}\n級別：${CURRENT.beltLevel}\n目標：${CURRENT.goals.join('、')}\n器材：${CURRENT.equipment.join('、')}\n/go：${goScore(CURRENT).score}/10\n\n`+CURRENT.blocks.map(b=>`${b.time} ${b.name}\n內容：${b.content}\n主教練：${b.coach}\n助教：${b.assistant}\n安全：${b.safe}\n課綱：${b.curriculumItem}`).join('\n\n')}
@@ -369,23 +400,32 @@ function fitnessList(){return `<div class="section-title">體能遊戲庫</div>`
 function renderVideoLibrary(){
   const fav=videos().filter(v=>v.favorite);
   const filtered=filteredVideos();
-  return `<div class="section-title">參考教學影片</div><button class="btn" onclick="openVideoModal()">新增影片 ➜</button>${fav.length?`<div class="section-title">我的常用影片</div>${fav.map(videoCard).join('')}`:''}<div class="card"><input class="field" placeholder="搜尋影片名稱 / 重點 / 備註" value="${esc(videoFilter.q)}" oninput="videoFilter.q=this.value;renderCurriculum()"><div style="height:8px"></div><div class="choice-grid">${filterSelect('category','分類',['全部',...VIDEO_CATEGORIES])}${filterSelect('beltLevel','級別',['全部',...BELTS])}${filterSelect('classType','班級',['全部',...CLASSES])}${filterSelect('goal','目標',['全部',...GOALS])}</div></div>${filtered.length?filtered.map(videoCard).join(''):'<div class="empty"><b>沒有符合的影片</b>請調整篩選或新增影片連結。</div>'}`;
+  return `<div class="section-title">參考教學影片</div><button class="btn" onclick="openVideoModal()">新增影片 ➜</button>${fav.length?`<div class="section-title">我的常用影片</div>${fav.map(videoCard).join('')}`:''}<div class="card"><input class="field" placeholder="搜尋影片名稱 / 重點 / 備註" value="${esc(videoFilter.q)}" oninput="videoFilter.q=this.value;renderCurriculum()"><div style="height:8px"></div><div class="choice-grid">${filterSelect('category','分類',['全部',...VIDEO_CATEGORIES])}${filterSelect('beltLevel','級別',['全部',...BELTS])}${filterSelect('classType','班級',['全部',...CLASSES])}${filterSelect('goal','目標',['全部',...GOALS])}${filterSelect('favorite','收藏',['全部','只看收藏'])}</div></div>${filtered.length?filtered.map(videoCard).join(''):'<div class="empty"><b>沒有符合的影片</b>請調整篩選或新增影片連結。</div>'}`;
 }
 function filterSelect(key,label,items){
   return `<select class="field" aria-label="${label}" onchange="videoFilter.${key}=this.value;renderCurriculum()">${items.map(x=>`<option ${videoFilter[key]===x?'selected':''}>${x}</option>`).join('')}</select>`;
 }
 function filteredVideos(){
   const q=videoFilter.q.trim().toLowerCase();
-  return videos().filter(v=>(!q||[v.title,v.goal,v.keyPoints,v.coachNotes,v.safetyNotes].join(' ').toLowerCase().includes(q))&&(videoFilter.category==='全部'||v.category===videoFilter.category)&&(videoFilter.beltLevel==='全部'||v.beltLevel===videoFilter.beltLevel)&&(videoFilter.classType==='全部'||v.classType===videoFilter.classType)&&(videoFilter.goal==='全部'||(v.goal||'').includes(videoFilter.goal)));
+  return videos().filter(v=>(!q||[v.title,v.goal,v.keyPoints,v.coachNotes,v.safetyNotes].join(' ').toLowerCase().includes(q))&&(videoFilter.category==='全部'||v.category===videoFilter.category)&&(videoFilter.beltLevel==='全部'||v.beltLevel===videoFilter.beltLevel)&&(videoFilter.classType==='全部'||v.classType===videoFilter.classType)&&(videoFilter.goal==='全部'||(v.goal||'').includes(videoFilter.goal))&&(videoFilter.favorite==='全部'||v.favorite));
 }
 function videoCard(v){
-  const thumb=v.thumbnailUrl||ytThumb(v.videoUrl);
-  const fallback=`<div class="video-fallback"><div class="play">▶</div><b>外部影片連結</b><small>未下載影片；點下方「查看影片」開啟來源</small></div>`;
-  return `<div class="list-card"><div class="video-thumb">${thumb?`<img src="${esc(thumb)}" onerror="this.parentElement.innerHTML='${fallback.replace(/'/g,"\\'")}'">`:fallback}</div><h3>${esc(v.title)}</h3><div class="tag-row"><span class="tag blue">${v.category}</span><span class="tag">${v.beltLevel}</span><span class="tag">${v.classType}</span>${v.favorite?'<span class="tag green">常用</span>':''}</div><p class="muted">${esc(v.keyPoints||'')}</p><div class="detail safe"><b>安全提醒</b>${esc(v.safetyNotes||'依現場調整安全距離')}</div><div class="btn-row" style="margin-top:10px"><a class="btn sm" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><button class="btn ghost sm" onclick="toggleVideoFavorite('${v.id}')">${v.favorite?'取消收藏':'加入收藏'}</button></div></div>`;
+  v=normalizeVideo(v);
+  return `<div class="list-card">${videoPlayerHtml(v)}<h3>${esc(v.title)}</h3><div class="tag-row"><span class="tag blue">${v.category}</span><span class="tag">${v.beltLevel}</span><span class="tag">${v.classType}</span><span class="tag ${v.embedStatus==='embeddable'?'green':'warn'}">${videoStatusLabel(v)}</span>${v.favorite?'<span class="tag green">常用</span>':''}</div><p class="muted">${esc(v.keyPoints||'尚未填寫教學重點')}</p><div class="detail safe"><b>安全提醒</b>${esc(v.safetyNotes||'依現場調整安全距離')}</div><div class="btn-grid two" style="margin-top:10px"><a class="btn sm" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><button class="btn ghost sm" onclick="addVideoToCurrent('${v.id}')">加入今日課表</button><button class="btn ghost sm" onclick="generateTeachingPoints('${v.id}')">產生教學重點</button><button class="btn ghost sm" onclick="toggleVideoFavorite('${v.id}')">${v.favorite?'取消收藏':'收藏'}</button></div></div>`;
+}
+function videoPlayerHtml(v){
+  const fallback=videoFallbackHtml(v);
+  if(v.embedStatus==='embeddable'&&v.embedUrl){
+    return `<div class="video-thumb"><iframe src="${esc(v.embedUrl)}" title="${esc(v.title)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen onerror="this.parentElement.innerHTML='${fallback.replace(/'/g,"\\'")}'"></iframe></div>`;
+  }
+  return `<div class="video-thumb">${fallback}</div>`;
+}
+function videoFallbackHtml(v){
+  return `<div class="video-fallback"><div class="play">▶</div><b>外部影片連結</b><small>此影片來源不支援直接內嵌播放，請點擊下方按鈕開啟。</small><div class="btn-grid" style="width:100%;margin-top:10px"><a class="btn sm" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><div class="btn-row"><button class="btn sm ghost" onclick="copyText('${esc(v.videoUrl).replace(/'/g,"\\'")}')">複製連結</button><button class="btn sm ghost" onclick="addVideoToCurrent('${v.id}')">加入今日課表</button></div></div></div>`;
 }
 function ytId(url){const m=(url||'').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);return m?m[1]:''}
 function ytThumb(url){const id=ytId(url);return id?`https://img.youtube.com/vi/${id}/hqdefault.jpg`:''}
-function toggleVideoFavorite(id){const list=videos();const v=list.find(x=>x.id===id);if(v)v.favorite=!v.favorite;saveData(STORAGE_KEYS.videos,list);renderCurriculum();toast(v?.favorite?'已加入常用影片':'已取消收藏')}
+function toggleVideoFavorite(id){const list=videos();const v=list.find(x=>x.id===id);if(v){v.favorite=!v.favorite;v.updatedAt=todayISO()}saveVideos(list);renderCurriculum();toast(v?.favorite?'已加入常用影片':'已取消收藏')}
 function openVideoModal(){
   modal(`<h2>新增參考教學影片</h2>
     <label>影片名稱</label><input class="field" id="vTitle" placeholder="例：旋踢踢靶三段式教學">
@@ -403,8 +443,34 @@ function openVideoModal(){
 function saveVideo(){
   const title=$('vTitle').value.trim(), videoUrl=$('vUrl').value.trim();
   if(!title||!videoUrl)return toast('請填影片名稱與連結');
-  const obj={id:uid(),title,category:$('vCategory').value,beltLevel:$('vBelt').value,classType:$('vClass').value,goal:$('vGoal').value.trim(),equipment:$('vEquip').value.trim(),videoUrl,thumbnailUrl:ytThumb(videoUrl),keyPoints:$('vKey').value.trim(),coachNotes:$('vCoach').value.trim(),safetyNotes:$('vSafe').value.trim(),favorite:false,createdAt:todayISO()};
-  const list=videos();list.unshift(obj);saveData(STORAGE_KEYS.videos,list);closeModal();curriculumTab='videos';renderCurriculum();toast('已儲存影片連結');
+  const obj=normalizeVideo({id:uid(),title,category:$('vCategory').value,beltLevel:$('vBelt').value,classType:$('vClass').value,goal:$('vGoal').value.trim(),equipment:$('vEquip').value.trim(),videoUrl,thumbnailUrl:ytThumb(videoUrl),keyPoints:$('vKey').value.trim(),coachNotes:$('vCoach').value.trim(),safetyNotes:$('vSafe').value.trim(),favorite:false,createdAt:todayISO(),updatedAt:todayISO()});
+  const list=videos();list.unshift(obj);saveVideos(list);closeModal();curriculumTab='videos';renderCurriculum();toast('已儲存影片連結');
+}
+function generateTeachingPoints(id){
+  const v=videos().find(x=>x.id===id); if(!v)return;
+  const aiKey=loadData('openai_api_key','')||localStorage.getItem('OPENAI_API_KEY')||'';
+  const focus=(v.goal||v.category||'技術').split(/[、,，]/).filter(Boolean).slice(0,3).join('、')||v.category;
+  const text=`${aiKey?'AI 輔助草稿':'本地模板草稿'}｜${v.title}
+
+教練講解重點：
+1. 先說明今日目標：${focus}
+2. 示範時放慢第一遍，第二遍加入速度與節奏。
+3. 讓孩子知道成功標準：方向正確、距離安全、動作完整。
+
+常見錯誤：
+- 只追求速度，忽略抬膝、轉髖或收腳。
+- 排隊太靠近，等待區與動作區沒有分開。
+- 看影片後直接模仿高難度版本，未先降階。
+
+安全提醒：
+- ${v.safetyNotes||'依年齡與場地調整距離，一次一人進入動作區。'}
+
+如何放進今日課表：
+- 暖身後先看 20-40 秒重點片段。
+- 主課用「分解示範 → 分站練習 → 小檢測」三段執行。
+- 助教負責看距離、排隊與需要降階的孩子。`;
+  modal(`<h2>教學重點草稿</h2><div class="copy-box" style="max-height:420px">${esc(text)}</div><div style="height:10px"></div><button class="btn" onclick="copyText(window._videoPointText)">複製教學重點</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">關閉</button>`);
+  window._videoPointText=text;
 }
 function renderStudents(){
   const list=students().filter(s=>s.name.includes(studentQuery)||s.beltLevel.includes(studentQuery));

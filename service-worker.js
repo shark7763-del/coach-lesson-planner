@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coachpro-v5';
+const CACHE_NAME = 'coachpro-v6';
 const APP_SHELL = [
   './',
   './index.html',
