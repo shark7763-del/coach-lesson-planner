@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#050B14">
+<meta name="theme-color" content="#00D9FF">
 <meta name="description" content="CoachPro 備課戰情室，給跆拳道教練、體適能教練與道館經營者使用的手機備課系統。">
 <meta name="application-name" content="CoachPro">
 <meta name="apple-mobile-web-app-title" content="CoachPro">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" type="image/png" href="coachpro-logo.png">
-<link rel="apple-touch-icon" href="coachpro-logo.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <title>CoachPro</title>
 <style>
@@ -158,10 +158,20 @@ details.lesson-card{padding:0;margin-bottom:12px}
 .seg button.on{background:rgba(0,217,255,.14);color:var(--primary);box-shadow:0 0 14px rgba(0,217,255,.12)}
 .copy-row{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:start;margin-bottom:10px}.copy-row>div{min-width:0}
 .copy-box{background:rgba(5,11,20,.50);border:1px solid rgba(0,217,255,.16);border-radius:14px;padding:12px;white-space:pre-wrap;font-size:13px;color:var(--text-muted);max-height:190px;overflow:auto}
+.install-card{border:1px solid var(--border-glow);background:linear-gradient(145deg,rgba(0,217,255,.12),rgba(16,28,46,.82));box-shadow:0 0 24px rgba(0,217,255,.14);border-radius:20px;padding:15px;margin-bottom:12px}
+.install-card h3{margin:0 0 5px;font-size:17px;font-weight:950}
+.install-card p{margin:0 0 12px;color:var(--text-muted);font-size:13px}
+.install-card.compact{display:grid;grid-template-columns:1fr;gap:10px}
+.offline-banner{position:sticky;top:70px;z-index:32;margin:-4px 16px 10px;border:1px solid rgba(255,176,32,.36);background:rgba(255,176,32,.12);color:#ffd28a;border-radius:14px;padding:10px 12px;font-size:12px;font-weight:900;display:none}
+.offline-banner.show{display:block}
 .mini-video{border-top:1px solid rgba(0,217,255,.12);padding-top:10px;margin-top:10px}
 .video-thumb{width:100%;aspect-ratio:16/9;border-radius:16px;border:1px solid var(--border-glow);background:linear-gradient(135deg,rgba(0,217,255,.16),rgba(47,128,255,.10));display:grid;place-items:center;overflow:hidden;margin-bottom:10px}
 .video-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .video-thumb span{font-size:28px;color:var(--primary);text-shadow:0 0 18px rgba(0,217,255,.6)}
+.video-fallback{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;color:var(--text-muted)}
+.video-fallback .play{font-size:30px;color:var(--primary);line-height:1;margin-bottom:8px;text-shadow:0 0 18px rgba(0,217,255,.6)}
+.video-fallback b{color:var(--text-main);font-size:14px;margin-bottom:4px}
+.video-fallback small{font-size:11px;line-height:1.4}
 .alert{border:1px solid rgba(255,176,32,.36);background:rgba(255,176,32,.10);border-radius:16px;padding:13px;margin-bottom:12px;color:#ffd28a}.alert b{display:block;color:var(--warning);margin-bottom:4px}
 .empty{text-align:center;color:var(--text-muted);padding:34px 12px;font-size:13px}.empty b{display:block;color:var(--text-main);font-size:16px;margin-bottom:4px}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:70;display:flex;align-items:flex-end;justify-content:center}
@@ -178,6 +188,7 @@ details.lesson-card{padding:0;margin-bottom:12px}
   <div><h1>CoachPro</h1><p id="appSub">備課：課綱、學生進度與課後回饋</p></div>
   <button class="gear" onclick="openSettings()" aria-label="設定">⚙</button>
 </header>
+<div class="offline-banner" id="offlineBanner">目前離線，部分 AI 功能無法使用。</div>
 
 <main>
   <section class="page" id="page-plan"></section>
@@ -252,7 +263,7 @@ function curFor(level){return curriculum().find(c=>c.displayName===level)||curri
 function itemsFor(c){return [c.teachingContent,c.poomsae,c.kicking,c.sparringOrPads,c.powerBreaking,c.testItems].join('、').split(/[、,，]/).map(x=>x.trim()).filter(Boolean)}
 function renderPlan(){
   if(screen==='quick')return renderQuick(); if(screen==='ai')return renderAI(); if(screen==='result')return renderResult();
-  $('page-plan').innerHTML=`<div class="hero"><div class="brandline"><div class="big-logo"><img src="coachpro-logo.png"></div><div><h2>CoachPro 備課戰情室</h2><p>讓每一堂課，都有計畫、有變化、有回饋。</p></div></div><div class="speedline"></div></div>
+  $('page-plan').innerHTML=`<div class="hero"><div class="brandline"><div class="big-logo"><img src="coachpro-logo.png"></div><div><h2>CoachPro 備課戰情室</h2><p>讓每一堂課，都有計畫、有變化、有回饋。</p></div></div><div class="speedline"></div></div>${installCard('home')}
   <div class="grid">
     <button class="entry-card" onclick="startQuick()"><span class="entry-icon">⚡</span><span><h3>快速備課</h3><p>依班級、級別、目標與器材產生今日課表。</p></span><span class="arrow">➜</span></button>
     <button class="entry-card" onclick="screen='ai';renderPlan()"><span class="entry-icon">AI</span><span><h3>AI 智能備課</h3><p>描述下雨、人多、孩子狀態或器材限制，自動轉成課表。</p></span><span class="arrow">➜</span></button>
@@ -369,7 +380,8 @@ function filteredVideos(){
 }
 function videoCard(v){
   const thumb=v.thumbnailUrl||ytThumb(v.videoUrl);
-  return `<div class="list-card"><div class="video-thumb">${thumb?`<img src="${esc(thumb)}" onerror="this.parentElement.innerHTML='<span>▶</span>'">`:'<span>▶</span>'}</div><h3>${esc(v.title)}</h3><div class="tag-row"><span class="tag blue">${v.category}</span><span class="tag">${v.beltLevel}</span><span class="tag">${v.classType}</span>${v.favorite?'<span class="tag green">常用</span>':''}</div><p class="muted">${esc(v.keyPoints||'')}</p><div class="detail safe"><b>安全提醒</b>${esc(v.safetyNotes||'依現場調整安全距離')}</div><div class="btn-row" style="margin-top:10px"><a class="btn sm" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><button class="btn ghost sm" onclick="toggleVideoFavorite('${v.id}')">${v.favorite?'取消收藏':'加入收藏'}</button></div></div>`;
+  const fallback=`<div class="video-fallback"><div class="play">▶</div><b>外部影片連結</b><small>未下載影片；點下方「查看影片」開啟來源</small></div>`;
+  return `<div class="list-card"><div class="video-thumb">${thumb?`<img src="${esc(thumb)}" onerror="this.parentElement.innerHTML='${fallback.replace(/'/g,"\\'")}'">`:fallback}</div><h3>${esc(v.title)}</h3><div class="tag-row"><span class="tag blue">${v.category}</span><span class="tag">${v.beltLevel}</span><span class="tag">${v.classType}</span>${v.favorite?'<span class="tag green">常用</span>':''}</div><p class="muted">${esc(v.keyPoints||'')}</p><div class="detail safe"><b>安全提醒</b>${esc(v.safetyNotes||'依現場調整安全距離')}</div><div class="btn-row" style="margin-top:10px"><a class="btn sm" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><button class="btn ghost sm" onclick="toggleVideoFavorite('${v.id}')">${v.favorite?'取消收藏':'加入收藏'}</button></div></div>`;
 }
 function ytId(url){const m=(url||'').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);return m?m[1]:''}
 function ytThumb(url){const id=ytId(url);return id?`https://img.youtube.com/vi/${id}/hqdefault.jpg`:''}
@@ -413,16 +425,56 @@ function saveTempAndReopen(id,belt){const list=students(),s=list.find(x=>x.id===
 function saveStudent(id){const list=students(),i=list.findIndex(x=>x.id===id),obj={id,name:$('stName').value.trim()||'未命名',beltLevel:$('stBelt').value,classType:$('stClass').value,totalLessons:+$('stLessons').value||0,stabilityScore:+$('stStable').value||80,completedItems:[...document.querySelectorAll('[data-item].selected')].map(x=>x.dataset.item),weakItems:[...document.querySelectorAll('[data-weak].selected')].map(x=>x.dataset.weak),coachNotes:$('stNotes').value.trim(),updatedAt:todayISO()};i>=0?list[i]=obj:list.unshift(obj);saveData(STORAGE_KEYS.students,list);closeModal();renderStudents();toast('已儲存學生')}
 function deleteStudent(id){if(!confirm('刪除學生？'))return;saveData(STORAGE_KEYS.students,students().filter(s=>s.id!==id));renderStudents();toast('已刪除')}
 function renderAfter(){
-  if(!CURRENT){$('page-after').innerHTML='<div class="empty"><b>尚未產生今日課表</b>先到備課產生課表，這裡會出現助教任務與家長回饋。</div>';return}
+  if(!CURRENT){$('page-after').innerHTML=`<div class="section-title">助教模式</div>${assistantInstallCard()}<div class="empty"><b>尚未產生今日課表</b>先到備課產生課表，這裡會出現助教任務與家長回饋。</div>`;return}
   const labels={line:'LINE 群組版',personal:'個別鼓勵版',promotion:'晉級提醒版'};
-  $('page-after').innerHTML=`<div class="section-title">課後回饋</div><div class="seg">${Object.keys(labels).map(k=>`<button class="${feedbackTab===k?'on':''}" onclick="feedbackTab='${k}';renderAfter()">${labels[k]}</button>`).join('')}</div><div class="card"><div class="copy-row"><div><b>${labels[feedbackTab]}</b><div class="copy-box">${esc(CURRENT.parent[feedbackTab])}</div></div><button class="btn sm" onclick="copyText(CURRENT.parent['${feedbackTab}'])">複製</button></div></div><div class="section-title">今日助教任務</div>${CURRENT.blocks.map(b=>`<div class="list-card"><h3>${b.time} ${b.name}</h3><div class="detail assist"><b>站位</b>${b.assistantDetail.position}</div><div class="detail"><b>看什麼</b>${b.assistantDetail.watch}</div><div class="detail safe"><b>安全風險</b>${b.assistantDetail.risk}</div><div class="detail curr"><b>控場口令</b>${b.assistantDetail.command}</div></div>`).join('')}<button class="btn ghost" onclick="copyText(assistantText())">一鍵複製助教任務</button>`;
+  $('page-after').innerHTML=`<div class="section-title">課後回饋</div>${assistantInstallCard()}<div class="seg">${Object.keys(labels).map(k=>`<button class="${feedbackTab===k?'on':''}" onclick="feedbackTab='${k}';renderAfter()">${labels[k]}</button>`).join('')}</div><div class="card"><div class="copy-row"><div><b>${labels[feedbackTab]}</b><div class="copy-box">${esc(CURRENT.parent[feedbackTab])}</div></div><button class="btn sm" onclick="copyText(CURRENT.parent['${feedbackTab}'])">複製</button></div></div><div class="section-title">今日助教任務</div>${CURRENT.blocks.map(b=>`<div class="list-card"><h3>${b.time} ${b.name}</h3><div class="detail assist"><b>站位</b>${b.assistantDetail.position}</div><div class="detail"><b>看什麼</b>${b.assistantDetail.watch}</div><div class="detail safe"><b>安全風險</b>${b.assistantDetail.risk}</div><div class="detail curr"><b>控場口令</b>${b.assistantDetail.command}</div></div>`).join('')}<button class="btn ghost" onclick="copyText(assistantText())">一鍵複製助教任務</button>`;
 }
 function assistantText(){return CURRENT.blocks.map(b=>`${b.time} ${b.name}\n站位：${b.assistantDetail.position}\n看：${b.assistantDetail.watch}\n提醒：${b.assistantDetail.remind}\n安全：${b.assistantDetail.risk}`).join('\n\n')}
+let deferredPrompt=null, installReady=false, installOutcome='';
+const INSTALL_DISMISS_KEY='coachpro_install_dismissed_at';
+function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
+function installLabel(){return isStandalone()||installOutcome==='accepted'?'已安裝':'安裝 CoachPro App'}
+function installCard(context,compact){
+  if(isStandalone())return compact?`<div class="install-card compact"><h3>CoachPro App 已安裝</h3><p>現在是獨立 App 模式，可直接使用。</p><button class="btn ghost" disabled>已安裝</button></div>`:'';
+  return `<div class="install-card ${compact?'compact':''}"><h3>${context==='assistant'?'助教快速安裝':'安裝 CoachPro App'}</h3><p>${context==='assistant'?'把 CoachPro 加到手機桌面，上課前直接打開，就能查看今日課表、助教站位、安全提醒與控場口令。':'加入手機桌面，助教下次可以一鍵打開。'}</p><div class="btn-row"><button class="btn" onclick="installCoachPro()">${installLabel()}</button><button class="btn ghost" onclick="showInstallHelp()">安裝教學</button></div></div>`;
+}
+function assistantInstallCard(){return installCard('assistant')}
+async function installCoachPro(){
+  if(isStandalone()||installOutcome==='accepted'){toast('CoachPro 已安裝');return}
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const choice=await deferredPrompt.userChoice;
+    installOutcome=choice.outcome;
+    deferredPrompt=null;installReady=false;
+    if(choice.outcome==='accepted')toast('已開始安裝 CoachPro'); else toast('已取消安裝');
+    refresh();
+    return;
+  }
+  showInstallHelp();
+}
+function showInstallHelp(){
+  if(isIOS()){
+    modal(`<h2>iPhone 安裝方式</h2><div class="list-card"><h3>加入主畫面</h3><p class="muted">1. 點下方 Safari 分享按鈕<br>2. 選擇「加入主畫面」<br>3. 點右上角「新增」</p></div><button class="btn" onclick="closeModal()">我知道了</button>`);
+    return;
+  }
+  modal(`<h2>安裝 CoachPro App</h2><div class="list-card"><h3>手動安裝方式</h3><p class="muted">如果瀏覽器沒有跳出安裝視窗，請打開 Chrome 右上角選單，選擇「安裝應用程式」或「加到主畫面」。</p></div><button class="btn" onclick="closeModal()">我知道了</button>`);
+}
+function installWelcomeCard(){
+  return `<div class="install-card"><h3>安裝 CoachPro App</h3><p>加入手機桌面，助教下次可以一鍵打開。</p><button class="btn" onclick="installCoachPro()">安裝 CoachPro App</button><div style="height:8px"></div><button class="btn ghost" onclick="dismissInstallPrompt()">稍後再說</button></div>`;
+}
+function shouldShowInstallPrompt(){
+  if(isStandalone())return false;
+  const last=+localStorage.getItem(INSTALL_DISMISS_KEY)||0;
+  return Date.now()-last>24*60*60*1000;
+}
+function maybeShowInstallPrompt(){if(shouldShowInstallPrompt())modal(`<h2>CoachPro App</h2>${installWelcomeCard()}`)}
+function dismissInstallPrompt(){localStorage.setItem(INSTALL_DISMISS_KEY,String(Date.now()));closeModal()}
 function renderRecords(){
   const h=lessons();$('page-records').innerHTML=`<div class="section-title">紀錄與提醒</div>${warningMessages(CURRENT||{}).map(x=>`<div class="alert"><b>防重複 / 防漏教</b>${x}</div>`).join('')||'<div class="alert"><b>防重複 / 防漏教</b>目前沒有高風險提醒。</div>'}${h.length?h.map(l=>`<div class="list-card"><h3>${l.classType} · ${l.beltLevel}</h3><div class="muted">${new Date(l.date).toLocaleString('zh-TW')}｜${l.goals.join('、')}</div><div class="btn-row" style="margin-top:10px"><button class="btn ghost sm" onclick="reuse('${l.id}')">沿用課表</button><button class="btn dark sm" onclick="reuse('${l.id}',true)">變化版</button></div></div>`).join(''):'<div class="empty"><b>尚無歷史課表</b>產生課表後會自動保存在這裡。</div>'}`;
 }
 function reuse(id,v){const l=lessons().find(x=>x.id===id);if(!l)return;CURRENT=v?buildLesson({...l,equipment:l.equipment.includes('無器材')?['踢靶','角錐']:['無器材']},'歷史變化版'):{...l,id:uid(),date:todayISO(),mode:'沿用課表'};persistLesson();screen='result';go('plan')}
-function openSettings(){modal(`<h2>資料管理</h2><div class="list-card"><h3>CoachPro localStorage</h3><div class="muted">課綱 ${curriculum().length}｜影片 ${videos().length}｜學生 ${students().length}｜歷史 ${lessons().length}</div></div><button class="btn" onclick="exportJson()">匯出 JSON</button><label class="btn ghost" style="display:block;text-align:center;margin-top:8px">匯入 JSON<input type="file" accept=".json,application/json" style="display:none" onchange="importJson(this.files[0])"></label><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">關閉</button>`)}
+function openSettings(){modal(`<h2>資料管理</h2>${installCard('settings',true)}<div class="list-card"><h3>CoachPro localStorage</h3><div class="muted">課綱 ${curriculum().length}｜影片 ${videos().length}｜學生 ${students().length}｜歷史 ${lessons().length}</div></div><button class="btn" onclick="exportJson()">匯出 JSON</button><label class="btn ghost" style="display:block;text-align:center;margin-top:8px">匯入 JSON<input type="file" accept=".json,application/json" style="display:none" onchange="importJson(this.files[0])"></label><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">關閉</button>`)}
 function refresh(){renderPlan();renderCurriculum();renderStudents();renderAfter();renderRecords()}
 function modal(html){$('modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`}
 function closeModal(){$('modalRoot').innerHTML=''}
@@ -430,7 +482,13 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 function copyText(text){navigator.clipboard?.writeText(text).then(()=>toast('已複製')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('已複製')})}
 function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+page).classList.remove('hidden');document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('appSub').textContent={plan:'備課：快速、AI、歷史微調與 /go',curriculum:'素材：教案、影片、動作、體能遊戲',students:'學生：進度、檢核與晉級準備度',after:'課後：助教任務、LINE 回饋、晉級提醒',records:'紀錄：歷史、防重複、防漏教'}[page];if(page==='plan')renderPlan();if(page==='curriculum')renderCurriculum();if(page==='students')renderStudents();if(page==='after')renderAfter();if(page==='records')renderRecords();scrollTo(0,0)}
 ensureData();renderPlan();
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
+function updateOfflineBanner(){const b=$('offlineBanner');if(b)b.classList.toggle('show',!navigator.onLine)}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installReady=true;renderPlan()});
+window.addEventListener('appinstalled',()=>{installOutcome='accepted';deferredPrompt=null;installReady=false;refresh();toast('CoachPro 已安裝')});
+window.addEventListener('online',updateOfflineBanner);
+window.addEventListener('offline',updateOfflineBanner);
+updateOfflineBanner();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').catch(()=>{});setTimeout(maybeShowInstallPrompt,900)})}
 </script>
 </body>
 </html>

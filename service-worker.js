@@ -1,9 +1,12 @@
-const CACHE_NAME = 'coachpro-v3';
+const CACHE_NAME = 'coachpro-v5';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './coachpro-logo.png'
+  './coachpro-logo.png',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png'
 ];
 
 self.addEventListener('install', event => {
