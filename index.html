@@ -158,6 +158,10 @@ details.lesson-card{padding:0;margin-bottom:12px}
 .seg button.on{background:rgba(0,217,255,.14);color:var(--primary);box-shadow:0 0 14px rgba(0,217,255,.12)}
 .copy-row{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:start;margin-bottom:10px}.copy-row>div{min-width:0}
 .copy-box{background:rgba(5,11,20,.50);border:1px solid rgba(0,217,255,.16);border-radius:14px;padding:12px;white-space:pre-wrap;font-size:13px;color:var(--text-muted);max-height:190px;overflow:auto}
+.mini-video{border-top:1px solid rgba(0,217,255,.12);padding-top:10px;margin-top:10px}
+.video-thumb{width:100%;aspect-ratio:16/9;border-radius:16px;border:1px solid var(--border-glow);background:linear-gradient(135deg,rgba(0,217,255,.16),rgba(47,128,255,.10));display:grid;place-items:center;overflow:hidden;margin-bottom:10px}
+.video-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.video-thumb span{font-size:28px;color:var(--primary);text-shadow:0 0 18px rgba(0,217,255,.6)}
 .alert{border:1px solid rgba(255,176,32,.36);background:rgba(255,176,32,.10);border-radius:16px;padding:13px;margin-bottom:12px;color:#ffd28a}.alert b{display:block;color:var(--warning);margin-bottom:4px}
 .empty{text-align:center;color:var(--text-muted);padding:34px 12px;font-size:13px}.empty b{display:block;color:var(--text-main);font-size:16px;margin-bottom:4px}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:70;display:flex;align-items:flex-end;justify-content:center}
@@ -185,7 +189,7 @@ details.lesson-card{padding:0;margin-bottom:12px}
 
 <nav class="tabbar" aria-label="主要選單">
   <button class="active" data-page="plan" onclick="go('plan')"><span>⚡</span>備課</button>
-  <button data-page="curriculum" onclick="go('curriculum')"><span>▤</span>課綱</button>
+  <button data-page="curriculum" onclick="go('curriculum')"><span>▤</span>素材</button>
   <button data-page="students" onclick="go('students')"><span>◉</span>學生</button>
   <button data-page="after" onclick="go('after')"><span>✦</span>課後</button>
   <button data-page="records" onclick="go('records')"><span>▣</span>紀錄</button>
@@ -194,16 +198,16 @@ details.lesson-card{padding:0;margin-bottom:12px}
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEYS={curriculum:'coachpro_curriculum_v1',students:'coachpro_students_v1',lessonPlans:'lessonPlans',current:'coachpro_current_v2',fitness:'coachpro_fitness_v1'};
+const STORAGE_KEYS={curriculum:'coachpro_curriculum_v1',students:'coachpro_students_v1',lessonPlans:'lessonPlans',current:'coachpro_current_v2',fitness:'coachpro_fitness_v1',videos:'coachpro_videos_v1'};
 function saveData(key,value){localStorage.setItem(key,JSON.stringify(value))}
 function loadData(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch(e){return fallback}}
 function removeData(key){localStorage.removeItem(key)}
 function exportJson(){
-  const data={version:2,exportedAt:new Date().toISOString(),curriculum:loadData(STORAGE_KEYS.curriculum,[]),students:loadData(STORAGE_KEYS.students,[]),lessonPlans:loadData(STORAGE_KEYS.lessonPlans,[]),fitness:loadData(STORAGE_KEYS.fitness,[])};
+  const data={version:2,exportedAt:new Date().toISOString(),curriculum:loadData(STORAGE_KEYS.curriculum,[]),students:loadData(STORAGE_KEYS.students,[]),lessonPlans:loadData(STORAGE_KEYS.lessonPlans,[]),fitness:loadData(STORAGE_KEYS.fitness,[]),videos:loadData(STORAGE_KEYS.videos,[])};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='coachpro-data.json';a.click();URL.revokeObjectURL(a.href);
 }
 function importJson(file){
-  const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.curriculum)saveData(STORAGE_KEYS.curriculum,d.curriculum);if(d.students)saveData(STORAGE_KEYS.students,d.students);if(d.lessonPlans)saveData(STORAGE_KEYS.lessonPlans,d.lessonPlans);if(d.fitness)saveData(STORAGE_KEYS.fitness,d.fitness);toast('已匯入資料');closeModal();refresh()}catch(err){toast('匯入失敗')}};r.readAsText(file);
+  const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.curriculum)saveData(STORAGE_KEYS.curriculum,d.curriculum);if(d.students)saveData(STORAGE_KEYS.students,d.students);if(d.lessonPlans)saveData(STORAGE_KEYS.lessonPlans,d.lessonPlans);if(d.fitness)saveData(STORAGE_KEYS.fitness,d.fitness);if(d.videos)saveData(STORAGE_KEYS.videos,d.videos);toast('已匯入資料');closeModal();refresh()}catch(err){toast('匯入失敗')}};r.readAsText(file);
 }
 const $=id=>document.getElementById(id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -216,6 +220,12 @@ const SIZES=['少於8人','8-15人','15-25人','25人以上'];
 const PLACES=['大場地','中場地','小場地','下雨室內'];
 const GOALS=['基本動作','基本腿法','踢靶應用','品勢段落','對練步伐','防守反擊','黑帶檢定','比賽備戰','幼兒協調','禮貌紀律','體能強化'];
 const EQUIP=['踢靶','角錐','敏捷圈','軟墊','跳繩','反應燈','欄架','無器材'];
+const VIDEO_CATEGORIES=['基本腿法','品勢教學','對練應用','體能訓練','幼兒課程','助教示範'];
+const videoSeed=[
+  {id:'vid-basic-kick',title:'基本腿法踢靶搜尋',category:'基本腿法',beltLevel:'八級黃帶',classType:'基礎班',goal:'前踢、旋踢、踢靶',equipment:'踢靶',videoUrl:'https://www.youtube.com/results?search_query=taekwondo+kids+front+kick+roundhouse+pad+drill',thumbnailUrl:'',keyPoints:'抬膝、轉髖、收腳、踢靶距離',coachNotes:'適合放在主課前讓教練抓示範重點。',safetyNotes:'一次一人進入踢擊區，持靶者站穩。',favorite:true,createdAt:todayISO()},
+  {id:'vid-poomsae',title:'太極一章教學搜尋',category:'品勢教學',beltLevel:'八級黃帶',classType:'品勢班',goal:'品勢段落、太極一章',equipment:'無器材',videoUrl:'https://www.youtube.com/results?search_query=taegeuk+1+taekwondo+poomsae+tutorial',thumbnailUrl:'',keyPoints:'方向、站姿、視線、八拍節奏',coachNotes:'適合課綱複習雷達使用。',safetyNotes:'手刀與踢腿保持左右間距。',favorite:false,createdAt:todayISO()},
+  {id:'vid-fitness',title:'兒童敏捷反應訓練搜尋',category:'體能訓練',beltLevel:'0級白帶',classType:'幼幼班',goal:'幼兒協調、反應、敏捷',equipment:'角錐、敏捷圈',videoUrl:'https://www.youtube.com/results?search_query=kids+agility+reaction+games+cones',thumbnailUrl:'',keyPoints:'短回合、低碰撞、規則簡單',coachNotes:'可改成闖關或接力。',safetyNotes:'轉彎處放慢，不推擠。',favorite:true,createdAt:todayISO()}
+];
 const QUICK_STEPS=[
   {key:'classType',title:'選班級',items:CLASSES},{key:'beltLevel',title:'選色帶級別',items:BELTS},{key:'age',title:'選年齡',items:AGES},{key:'size',title:'選人數',items:SIZES},{key:'place',title:'選場地',items:PLACES},{key:'goals',title:'選今日目標',items:GOALS,multi:true},{key:'equipment',title:'選器材',items:EQUIP,multi:true}
 ];
@@ -232,11 +242,12 @@ const curriculumSeed=[
   ['dan-prep','晉段準備','晉段準備','一年半以上','高麗型、指定型、太極八章、太極一章～太極八章、全套護具自由對打、擊破','高麗型、指定型、太極一章～太極八章','晉段足技','全套護具自由對打','擊破','高麗型、指定型、太極八章、全套護具自由對打、擊破','系統顯示使用晉段，避免混用名稱']
 ].map(x=>({id:x[0],levelName:x[1],displayName:x[2],suggestedLessons:x[3],teachingContent:x[4],poomsae:x[5],kicking:x[6],sparringOrPads:x[7],powerBreaking:x[8],testItems:x[9],coachNotes:x[10]}));
 const fitnessSeed=['敏捷','爆發力','核心','平衡','協調','反應','心肺','柔軟度','恢復收操'].map((name,i)=>({id:'fit-'+i,name,ages:['3-6歲','國小低年級','國小高年級','國中','高中以上'],classes:['基礎班','選手班','暑期集訓'],intensity:i>5?'中高':'中等',equipment:i%2?['角錐','敏捷圈']:['無器材'],safety:'依年齡調整強度，保持安全距離，疲勞時降階。',low:'降低速度、縮短距離、增加休息。',high:'加入計時、反應口令或分站競賽。',game:'改成闖關、接力或顏色反應任務。'}));
-let screen='home',quickStep=0,quick={classType:'',beltLevel:'',age:'',size:'',place:'',goals:[],equipment:[]},CURRENT=loadData(STORAGE_KEYS.current,null),curriculumTab='levels',studentQuery='',feedbackTab='line';
-function ensureData(){if(!loadData(STORAGE_KEYS.curriculum,null))saveData(STORAGE_KEYS.curriculum,curriculumSeed);if(!loadData(STORAGE_KEYS.fitness,null))saveData(STORAGE_KEYS.fitness,fitnessSeed);if(!loadData(STORAGE_KEYS.students,null))saveData(STORAGE_KEYS.students,[])}
+let screen='home',quickStep=0,quick={classType:'',beltLevel:'',age:'',size:'',place:'',goals:[],equipment:[]},CURRENT=loadData(STORAGE_KEYS.current,null),curriculumTab='lesson',studentQuery='',feedbackTab='line',videoFilter={q:'',category:'全部',beltLevel:'全部',classType:'全部',goal:'全部'};
+function ensureData(){if(!loadData(STORAGE_KEYS.curriculum,null))saveData(STORAGE_KEYS.curriculum,curriculumSeed);if(!loadData(STORAGE_KEYS.fitness,null))saveData(STORAGE_KEYS.fitness,fitnessSeed);if(!loadData(STORAGE_KEYS.students,null))saveData(STORAGE_KEYS.students,[]);if(!loadData(STORAGE_KEYS.videos,null))saveData(STORAGE_KEYS.videos,videoSeed)}
 function curriculum(){return loadData(STORAGE_KEYS.curriculum,curriculumSeed)}
 function students(){return loadData(STORAGE_KEYS.students,[])}
 function lessons(){return loadData(STORAGE_KEYS.lessonPlans,[])}
+function videos(){return loadData(STORAGE_KEYS.videos,videoSeed)}
 function curFor(level){return curriculum().find(c=>c.displayName===level)||curriculum()[0]}
 function itemsFor(c){return [c.teachingContent,c.poomsae,c.kicking,c.sparringOrPads,c.powerBreaking,c.testItems].join('、').split(/[、,，]/).map(x=>x.trim()).filter(Boolean)}
 function renderPlan(){
@@ -303,14 +314,86 @@ function goScore(L){
 function persistLesson(){saveData(STORAGE_KEYS.current,CURRENT);const h=lessons();const i=h.findIndex(x=>x.id===CURRENT.id);i>=0?h[i]=CURRENT:h.unshift(CURRENT);saveData(STORAGE_KEYS.lessonPlans,h.slice(0,300))}
 function renderResult(){
   if(!CURRENT){screen='home';return renderPlan()}const s=goScore(CURRENT);
-  $('page-plan').innerHTML=`<div class="result-top"><div style="display:flex;align-items:center;gap:14px"><div style="flex:1"><h2>今日課表總覽</h2><div class="muted">戰情任務已生成，可直接帶到現場。</div></div><div class="score-orb">/go<br>${s.score}/10</div></div><div class="metric-grid"><div class="metric"><span>班級</span><b>${CURRENT.classType}</b></div><div class="metric"><span>級別</span><b>${CURRENT.beltLevel}</b></div><div class="metric"><span>今日目標</span><b>${CURRENT.goals.join('、')}</b></div><div class="metric"><span>建議器材</span><b>${CURRENT.equipment.join('、')}</b></div></div></div>${s.score<8?`<div class="alert"><b>/go 改善建議</b>${s.tips.map(x=>`<div>${x}</div>`).join('')}</div>`:''}<div class="card"><button class="btn" onclick="copyText(fullLessonText())">一鍵複製完整課表 ➜</button><div style="height:8px"></div><div class="btn-row"><button class="btn ghost sm" onclick="go('after')">課後回饋</button><button class="btn ghost sm" onclick="variation()">變化版本</button></div></div>${CURRENT.blocks.map((b,i)=>`<details class="lesson-card" ${i===0?'open':''}><summary><span class="time-badge">${b.time}</span><h3>${b.name}</h3><span class="chev">➜</span></summary><div class="detail-grid"><div class="detail"><b>教學內容</b>${b.content}</div><div class="detail"><b>主教練任務</b>${b.coach}</div><div class="detail assist"><b>助教任務</b>${b.assistant}<br>站位：${b.assistantDetail.position}<br>看什麼：${b.assistantDetail.watch}<br>控場口令：${b.assistantDetail.command}</div><div class="detail safe"><b>安全提醒</b>${b.safe}</div><div class="detail"><b>替代方案</b>${b.alt}</div><div class="detail curr"><b>對應課綱項目</b>${b.curriculumItem}</div></div></details>`).join('')}`;
+  $('page-plan').innerHTML=`<div class="result-top"><div style="display:flex;align-items:center;gap:14px"><div style="flex:1"><h2>今日課表總覽</h2><div class="muted">戰情任務已生成，可直接帶到現場。</div></div><div class="score-orb">/go<br>${s.score}/10</div></div><div class="metric-grid"><div class="metric"><span>班級</span><b>${CURRENT.classType}</b></div><div class="metric"><span>級別</span><b>${CURRENT.beltLevel}</b></div><div class="metric"><span>今日目標</span><b>${CURRENT.goals.join('、')}</b></div><div class="metric"><span>建議器材</span><b>${CURRENT.equipment.join('、')}</b></div></div></div>${s.score<8?`<div class="alert"><b>/go 改善建議</b>${s.tips.map(x=>`<div>${x}</div>`).join('')}</div>`:''}<div class="card"><button class="btn" onclick="copyText(fullLessonText())">一鍵複製完整課表 ➜</button><div style="height:8px"></div><div class="btn-row"><button class="btn ghost sm" onclick="go('after')">課後回饋</button><button class="btn ghost sm" onclick="variation()">變化版本</button></div></div>${CURRENT.blocks.map((b,i)=>`<details class="lesson-card" ${i===0?'open':''}><summary><span class="time-badge">${b.time}</span><h3>${b.name}</h3><span class="chev">➜</span></summary><div class="detail-grid"><div class="detail"><b>教學內容</b>${b.content}</div><div class="detail"><b>主教練任務</b>${b.coach}</div><div class="detail assist"><b>助教任務</b>${b.assistant}<br>站位：${b.assistantDetail.position}<br>看什麼：${b.assistantDetail.watch}<br>控場口令：${b.assistantDetail.command}</div><div class="detail safe"><b>安全提醒</b>${b.safe}</div><div class="detail"><b>替代方案</b>${b.alt}</div><div class="detail curr"><b>對應課綱項目</b>${b.curriculumItem}</div>${recommendedVideoHtml(b,i)}</div></details>`).join('')}`;
+}
+function recommendedVideos(block){
+  const text=[block.name,block.content,block.curriculumItem].join(' ');
+  const terms=text.split(/[、，\s]/).filter(Boolean);
+  return videos().map(v=>{
+    const hay=[v.title,v.category,v.goal,v.keyPoints,v.coachNotes].join(' ');
+    let score=0;
+    if(/踢|旋|下壓|側|前拍|靶/.test(text)&&v.category==='基本腿法')score+=5;
+    if(/品勢|太極|型/.test(text)&&v.category==='品勢教學')score+=5;
+    if(/對練|反擊|護具/.test(text)&&v.category==='對練應用')score+=5;
+    if(/體能|敏捷|反應|收操|暖身/.test(text)&&v.category==='體能訓練')score+=4;
+    terms.forEach(t=>{if(t.length>1&&hay.includes(t))score+=1});
+    return {v,score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,2).map(x=>x.v);
+}
+function recommendedVideoHtml(block,idx){
+  const rec=recommendedVideos(block), added=(block.videoIds||[]).map(id=>videos().find(v=>v.id===id)).filter(Boolean);
+  const list=[...added,...rec.filter(v=>!added.some(a=>a.id===v.id))].slice(0,3);
+  if(!list.length)return `<div class="detail"><b>參考教學影片</b>尚無推薦影片，可到素材分頁新增。</div>`;
+  return `<div class="detail curr"><b>參考教學影片</b>${list.map(v=>`<div class="mini-video"><span class="tag blue">${v.category}</span><b>${esc(v.title)}</b><div class="btn-row" style="margin-top:8px"><a class="btn sm ghost" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><button class="btn sm ghost" onclick="addVideoToLesson(${idx},'${v.id}')">加入今日課表</button></div></div>`).join('')}</div>`;
+}
+function addVideoToLesson(blockIndex,videoId){
+  const b=CURRENT?.blocks?.[blockIndex]; if(!b)return;
+  b.videoIds=b.videoIds||[];
+  if(!b.videoIds.includes(videoId))b.videoIds.push(videoId);
+  persistLesson(); renderResult(); toast('已加入今日課表');
 }
 function variation(){CURRENT=buildLesson({...CURRENT,equipment:CURRENT.equipment.includes('無器材')?['踢靶','角錐']:['無器材'],size:CURRENT.size==='25人以上'?'15-25人':'25人以上'},'變化版');persistLesson();renderResult();toast('已產生變化版')}
 function fullLessonText(){return `CoachPro 今日課表\n班級：${CURRENT.classType}\n級別：${CURRENT.beltLevel}\n目標：${CURRENT.goals.join('、')}\n器材：${CURRENT.equipment.join('、')}\n/go：${goScore(CURRENT).score}/10\n\n`+CURRENT.blocks.map(b=>`${b.time} ${b.name}\n內容：${b.content}\n主教練：${b.coach}\n助教：${b.assistant}\n安全：${b.safe}\n課綱：${b.curriculumItem}`).join('\n\n')}
 function renderCurriculum(){
-  const data=curriculum();$('page-curriculum').innerHTML=`<div class="section-title">色帶課綱資料庫</div><div class="seg"><button class="${curriculumTab==='levels'?'on':''}" onclick="curriculumTab='levels';renderCurriculum()">色帶</button><button class="${curriculumTab==='fitness'?'on':''}" onclick="curriculumTab='fitness';renderCurriculum()">體能</button><button class="${curriculumTab==='test'?'on':''}" onclick="curriculumTab='test';renderCurriculum()">檢核</button></div>${curriculumTab==='fitness'?fitnessList():data.map(c=>`<div class="list-card"><h3>${c.displayName}</h3><div class="belt-strip"></div><div class="tag-row"><span class="tag blue">建議 ${c.suggestedLessons} 堂</span><span class="tag green">${c.poomsae||'基礎課綱'}</span></div><p class="muted">${c.teachingContent}</p><div class="detail curr"><b>測驗項目</b>${c.testItems}</div><div class="detail"><b>教練備註</b>${c.coachNotes}</div></div>`).join('')}`;
+  $('page-curriculum').innerHTML=`<div class="section-title">素材中心</div><div class="seg" style="grid-template-columns:repeat(2,1fr)"><button class="${curriculumTab==='lesson'?'on':''}" onclick="curriculumTab='lesson';renderCurriculum()">教案素材庫</button><button class="${curriculumTab==='videos'?'on':''}" onclick="curriculumTab='videos';renderCurriculum()">參考教學影片</button><button class="${curriculumTab==='tech'?'on':''}" onclick="curriculumTab='tech';renderCurriculum()">技術動作速查</button><button class="${curriculumTab==='fitness'?'on':''}" onclick="curriculumTab='fitness';renderCurriculum()">體能遊戲庫</button></div>${curriculumTab==='videos'?renderVideoLibrary():curriculumTab==='tech'?techList():curriculumTab==='fitness'?fitnessList():lessonMaterialList()}`;
 }
-function fitnessList(){return loadData(STORAGE_KEYS.fitness,fitnessSeed).map(f=>`<div class="list-card"><h3>${f.name}</h3><div class="tag-row"><span class="tag blue">${f.intensity}</span>${f.equipment.map(e=>`<span class="tag">${e}</span>`).join('')}</div><div class="detail safe"><b>安全提醒</b>${f.safety}</div><div class="detail"><b>低強度</b>${f.low}</div><div class="detail"><b>高強度</b>${f.high}</div><div class="detail curr"><b>遊戲化版本</b>${f.game}</div></div>`).join('')}
+function lessonMaterialList(){
+  return `<div class="section-title">教案素材庫</div>`+curriculum().map(c=>`<div class="list-card"><h3>${c.displayName}</h3><div class="belt-strip"></div><div class="tag-row"><span class="tag blue">建議 ${c.suggestedLessons} 堂</span><span class="tag green">${c.poomsae||'基礎課綱'}</span></div><p class="muted">${c.teachingContent}</p><div class="detail curr"><b>測驗項目</b>${c.testItems}</div><div class="detail"><b>教練備註</b>${c.coachNotes}</div></div>`).join('');
+}
+function techList(){
+  const tech=['前踢：提膝、伸腿、收腳、落地','旋踢：轉髖、抬膝、腳背擊中、快速收腳','下壓：抬腿上提、腳跟下壓、控制落地','側踢：膝蓋收緊、腳刀推出、身體穩定','後踢：回頭看目標、腳跟直線踢出','後旋踢：轉身看目標、腳跟掃擊、安全距離'];
+  return `<div class="section-title">技術動作速查</div>`+tech.map(t=>`<div class="list-card"><h3>${t.split('：')[0]}</h3><p class="muted">${t.split('：')[1]}</p><button class="btn ghost sm" onclick="copyText('${t}')">複製重點</button></div>`).join('');
+}
+function fitnessList(){return `<div class="section-title">體能遊戲庫</div>`+loadData(STORAGE_KEYS.fitness,fitnessSeed).map(f=>`<div class="list-card"><h3>${f.name}</h3><div class="tag-row"><span class="tag blue">${f.intensity}</span>${f.equipment.map(e=>`<span class="tag">${e}</span>`).join('')}</div><div class="detail safe"><b>安全提醒</b>${f.safety}</div><div class="detail"><b>低強度</b>${f.low}</div><div class="detail"><b>高強度</b>${f.high}</div><div class="detail curr"><b>遊戲化版本</b>${f.game}</div></div>`).join('')}
+function renderVideoLibrary(){
+  const fav=videos().filter(v=>v.favorite);
+  const filtered=filteredVideos();
+  return `<div class="section-title">參考教學影片</div><button class="btn" onclick="openVideoModal()">新增影片 ➜</button>${fav.length?`<div class="section-title">我的常用影片</div>${fav.map(videoCard).join('')}`:''}<div class="card"><input class="field" placeholder="搜尋影片名稱 / 重點 / 備註" value="${esc(videoFilter.q)}" oninput="videoFilter.q=this.value;renderCurriculum()"><div style="height:8px"></div><div class="choice-grid">${filterSelect('category','分類',['全部',...VIDEO_CATEGORIES])}${filterSelect('beltLevel','級別',['全部',...BELTS])}${filterSelect('classType','班級',['全部',...CLASSES])}${filterSelect('goal','目標',['全部',...GOALS])}</div></div>${filtered.length?filtered.map(videoCard).join(''):'<div class="empty"><b>沒有符合的影片</b>請調整篩選或新增影片連結。</div>'}`;
+}
+function filterSelect(key,label,items){
+  return `<select class="field" aria-label="${label}" onchange="videoFilter.${key}=this.value;renderCurriculum()">${items.map(x=>`<option ${videoFilter[key]===x?'selected':''}>${x}</option>`).join('')}</select>`;
+}
+function filteredVideos(){
+  const q=videoFilter.q.trim().toLowerCase();
+  return videos().filter(v=>(!q||[v.title,v.goal,v.keyPoints,v.coachNotes,v.safetyNotes].join(' ').toLowerCase().includes(q))&&(videoFilter.category==='全部'||v.category===videoFilter.category)&&(videoFilter.beltLevel==='全部'||v.beltLevel===videoFilter.beltLevel)&&(videoFilter.classType==='全部'||v.classType===videoFilter.classType)&&(videoFilter.goal==='全部'||(v.goal||'').includes(videoFilter.goal)));
+}
+function videoCard(v){
+  const thumb=v.thumbnailUrl||ytThumb(v.videoUrl);
+  return `<div class="list-card"><div class="video-thumb">${thumb?`<img src="${esc(thumb)}" onerror="this.parentElement.innerHTML='<span>▶</span>'">`:'<span>▶</span>'}</div><h3>${esc(v.title)}</h3><div class="tag-row"><span class="tag blue">${v.category}</span><span class="tag">${v.beltLevel}</span><span class="tag">${v.classType}</span>${v.favorite?'<span class="tag green">常用</span>':''}</div><p class="muted">${esc(v.keyPoints||'')}</p><div class="detail safe"><b>安全提醒</b>${esc(v.safetyNotes||'依現場調整安全距離')}</div><div class="btn-row" style="margin-top:10px"><a class="btn sm" href="${esc(v.videoUrl)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">查看影片</a><button class="btn ghost sm" onclick="toggleVideoFavorite('${v.id}')">${v.favorite?'取消收藏':'加入收藏'}</button></div></div>`;
+}
+function ytId(url){const m=(url||'').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);return m?m[1]:''}
+function ytThumb(url){const id=ytId(url);return id?`https://img.youtube.com/vi/${id}/hqdefault.jpg`:''}
+function toggleVideoFavorite(id){const list=videos();const v=list.find(x=>x.id===id);if(v)v.favorite=!v.favorite;saveData(STORAGE_KEYS.videos,list);renderCurriculum();toast(v?.favorite?'已加入常用影片':'已取消收藏')}
+function openVideoModal(){
+  modal(`<h2>新增參考教學影片</h2>
+    <label>影片名稱</label><input class="field" id="vTitle" placeholder="例：旋踢踢靶三段式教學">
+    <label>YouTube 或影片連結</label><input class="field" id="vUrl" placeholder="只儲存連結，不下載影片">
+    <label>分類</label><select class="field" id="vCategory">${VIDEO_CATEGORIES.map(x=>`<option>${x}</option>`).join('')}</select>
+    <label>適合級別</label><select class="field" id="vBelt">${BELTS.map(x=>`<option>${x}</option>`).join('')}</select>
+    <label>適合班級</label><select class="field" id="vClass">${CLASSES.map(x=>`<option>${x}</option>`).join('')}</select>
+    <label>訓練目標</label><input class="field" id="vGoal" placeholder="例：旋踢、踢靶、基本腿法">
+    <label>器材</label><input class="field" id="vEquip" placeholder="例：踢靶、角錐">
+    <label>教學重點</label><textarea class="field" id="vKey"></textarea>
+    <label>教練備註</label><textarea class="field" id="vCoach"></textarea>
+    <label>安全提醒</label><textarea class="field" id="vSafe"></textarea>
+    <div style="height:12px"></div><button class="btn" onclick="saveVideo()">儲存影片 ➜</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">取消</button>`);
+}
+function saveVideo(){
+  const title=$('vTitle').value.trim(), videoUrl=$('vUrl').value.trim();
+  if(!title||!videoUrl)return toast('請填影片名稱與連結');
+  const obj={id:uid(),title,category:$('vCategory').value,beltLevel:$('vBelt').value,classType:$('vClass').value,goal:$('vGoal').value.trim(),equipment:$('vEquip').value.trim(),videoUrl,thumbnailUrl:ytThumb(videoUrl),keyPoints:$('vKey').value.trim(),coachNotes:$('vCoach').value.trim(),safetyNotes:$('vSafe').value.trim(),favorite:false,createdAt:todayISO()};
+  const list=videos();list.unshift(obj);saveData(STORAGE_KEYS.videos,list);closeModal();curriculumTab='videos';renderCurriculum();toast('已儲存影片連結');
+}
 function renderStudents(){
   const list=students().filter(s=>s.name.includes(studentQuery)||s.beltLevel.includes(studentQuery));
   $('page-students').innerHTML=`<div class="section-title">學生進度卡</div><div class="btn-row" style="margin-bottom:10px"><input class="field" placeholder="搜尋學生 / 級別" value="${esc(studentQuery)}" oninput="studentQuery=this.value;renderStudents()"><button class="btn sm" onclick="openStudent()">新增</button></div>${list.length?list.map(s=>studentCard(s)).join(''):'<div class="empty"><b>尚未建立學生</b>新增學生後可追蹤課綱完成率與晉級準備度。</div>'}`;
@@ -339,13 +422,13 @@ function renderRecords(){
   const h=lessons();$('page-records').innerHTML=`<div class="section-title">紀錄與提醒</div>${warningMessages(CURRENT||{}).map(x=>`<div class="alert"><b>防重複 / 防漏教</b>${x}</div>`).join('')||'<div class="alert"><b>防重複 / 防漏教</b>目前沒有高風險提醒。</div>'}${h.length?h.map(l=>`<div class="list-card"><h3>${l.classType} · ${l.beltLevel}</h3><div class="muted">${new Date(l.date).toLocaleString('zh-TW')}｜${l.goals.join('、')}</div><div class="btn-row" style="margin-top:10px"><button class="btn ghost sm" onclick="reuse('${l.id}')">沿用課表</button><button class="btn dark sm" onclick="reuse('${l.id}',true)">變化版</button></div></div>`).join(''):'<div class="empty"><b>尚無歷史課表</b>產生課表後會自動保存在這裡。</div>'}`;
 }
 function reuse(id,v){const l=lessons().find(x=>x.id===id);if(!l)return;CURRENT=v?buildLesson({...l,equipment:l.equipment.includes('無器材')?['踢靶','角錐']:['無器材']},'歷史變化版'):{...l,id:uid(),date:todayISO(),mode:'沿用課表'};persistLesson();screen='result';go('plan')}
-function openSettings(){modal(`<h2>資料管理</h2><div class="list-card"><h3>CoachPro localStorage</h3><div class="muted">課綱 ${curriculum().length}｜學生 ${students().length}｜歷史 ${lessons().length}</div></div><button class="btn" onclick="exportJson()">匯出 JSON</button><label class="btn ghost" style="display:block;text-align:center;margin-top:8px">匯入 JSON<input type="file" accept=".json,application/json" style="display:none" onchange="importJson(this.files[0])"></label><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">關閉</button>`)}
+function openSettings(){modal(`<h2>資料管理</h2><div class="list-card"><h3>CoachPro localStorage</h3><div class="muted">課綱 ${curriculum().length}｜影片 ${videos().length}｜學生 ${students().length}｜歷史 ${lessons().length}</div></div><button class="btn" onclick="exportJson()">匯出 JSON</button><label class="btn ghost" style="display:block;text-align:center;margin-top:8px">匯入 JSON<input type="file" accept=".json,application/json" style="display:none" onchange="importJson(this.files[0])"></label><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">關閉</button>`)}
 function refresh(){renderPlan();renderCurriculum();renderStudents();renderAfter();renderRecords()}
 function modal(html){$('modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`}
 function closeModal(){$('modalRoot').innerHTML=''}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),1800)}
 function copyText(text){navigator.clipboard?.writeText(text).then(()=>toast('已複製')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('已複製')})}
-function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+page).classList.remove('hidden');document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('appSub').textContent={plan:'備課：快速、AI、歷史微調與 /go',curriculum:'課綱：色帶、品勢、足技、體能',students:'學生：進度、檢核與晉級準備度',after:'課後：助教任務、LINE 回饋、晉級提醒',records:'紀錄：歷史、防重複、防漏教'}[page];if(page==='plan')renderPlan();if(page==='curriculum')renderCurriculum();if(page==='students')renderStudents();if(page==='after')renderAfter();if(page==='records')renderRecords();scrollTo(0,0)}
+function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+page).classList.remove('hidden');document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('appSub').textContent={plan:'備課：快速、AI、歷史微調與 /go',curriculum:'素材：教案、影片、動作、體能遊戲',students:'學生：進度、檢核與晉級準備度',after:'課後：助教任務、LINE 回饋、晉級提醒',records:'紀錄：歷史、防重複、防漏教'}[page];if(page==='plan')renderPlan();if(page==='curriculum')renderCurriculum();if(page==='students')renderStudents();if(page==='after')renderAfter();if(page==='records')renderRecords();scrollTo(0,0)}
 ensureData();renderPlan();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
 </script>
