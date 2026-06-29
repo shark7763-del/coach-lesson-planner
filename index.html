@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#101828">
+<meta name="description" content="CoachPro 是為教練手機操作設計的備課戰情室，可快速產生課表、家長回饋與助教任務。">
 <meta name="application-name" content="CoachPro">
 <meta name="apple-mobile-web-app-title" content="CoachPro">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -535,6 +536,11 @@ function go(page){
   window.scrollTo(0,0);
 }
 seed(); renderPlan();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
